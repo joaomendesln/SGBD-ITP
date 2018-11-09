@@ -5,6 +5,7 @@ int main(void){
     while(fim != 1){
         printf("Escolha a opcao desejada:\n1-Criar tabela  2-Listar todas as tabelas  3-Inserir linha em uma tabela  0-Sair\n");
         scanf("%d", &x);
+        getchar();
         switch(x){
             case 1:
                 criar_tabela();
