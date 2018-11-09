@@ -1,9 +1,9 @@
-#include "./functions.h"
+#include "functions.h"
 int main(void){
     int x, fim=0;
     printf("Bem-vindo(a) ao banco de dados\n");
     while(fim != 1){
-        printf("Escolha a opcao desejada:\n1-Criar tabela  2-Listar todas as tabelas  3-Inserir linha em uma tabela  0-Sair.\n");
+        printf("Escolha a opcao desejada:\n1-Criar tabela  2-Listar todas as tabelas  3-Inserir linha em uma tabela  0-Sair\n");
         scanf("%d", &x);
         switch(x){
             case 1:
