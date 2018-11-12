@@ -104,7 +104,7 @@ void inserir_nome(char nome[100]){
     }
     //inserir o nome da tabela criada na listagem de tabelas
     else {
-        fprintf(arquivo, "\n%s", nome);
+        fprintf(arquivo, "%s\n", nome);
     }
     fclose(arquivo);
 }

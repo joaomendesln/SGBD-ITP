@@ -1,5 +1,6 @@
 #include "functions.h"
 int main(void){
+    system("clear");
     int x, fim=0;
     printf("Bem-vindo(a) ao banco de dados\n");
     while(fim != 1){
@@ -9,8 +10,11 @@ int main(void){
         switch(x){
             case 1:
                 criar_tabela();
+                system("clear");
+                printf("Tabela criada com sucesso\n");
                 break;
             case 2:
+                system("clear");
                 listar();
                 break;
             case 3:
@@ -23,7 +27,7 @@ int main(void){
                 printf("Valor invalido\n");
                 break;
         }
-        printf("\n");
+        //printf("\n");
     }
     return 0;
 }
