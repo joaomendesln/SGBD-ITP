@@ -2,49 +2,56 @@
 int checar_nome_tabela(char nome[100]);
 void criar_arquivo(char nome[100]);
 void inserir_nome(char nome[100]);
-void criar_campo(char nome[100], int cp, int tipo, int ai, int not_null, char campo[100]);
+void criar_coluna(coluna Coluna);
 void criar_tabela(){
-	struct campo Campo;
-    char nome[100], campo[100];
-    int numero, x, sid = 0, fim1 = 0;
+	coluna Coluna;
+    //char nome[100], Coluna[100];
+    int numero, x, sid = 0, fim = 0;
     //estrutura para garantir que a tabela a ser criada ainda não exista
-    while(fim1!=1){
+    while(fim!=1){
     	printf("Insira o nome da tabela\n");
-    	scanf("%s", nome);
-    	fim1 = checar_nome_tabela(nome);
-    	if(fim1 == 0) printf("Essa tabela ja existe\n");
+    	scanf("%s", Coluna.nome_tabela);
+    	fim = checar_nome_tabela(Coluna.nome_tabela);
+    	if(fim == 0) printf("Essa tabela ja existe\n");
     }
-    criar_arquivo(nome);
-    inserir_nome(nome);
-    printf("Insira o numero de campos\n");
+    criar_arquivo(Coluna.nome_tabela);
+    inserir_nome(Coluna.nome_tabela);
+    printf("Insira o numero de colunas\n");
     scanf("%d", &numero);
     printf("Deseja criar uma chave primaria padrão?\n1-Sim  0-Nao\n");
     scanf("%d", &sid);
     //chave primária padrão é criada
     if(sid == 1){
-    	criar_campo(nome, 1, 2, 1, 1, "id");
+        strcpy(Coluna.nome_coluna, "id");
+        Coluna.ai = 1;
+        Coluna.not_null = 1;
+        Coluna.tipo = 2;
+    	criar_coluna(Coluna);
     }
     //chave primária personalizada é criada
     else{
-    	char chave[100];
     	printf("Insira o nome da chave primaria (deve ser do tipo int)\n");
-    	scanf("%s", chave);
-    	criar_campo(nome, 1, 2, 1, 1, chave);
+    	scanf("%s", Coluna.nome_coluna);
+        Coluna.ai = 0;
+        Coluna.not_null = 1;
+        Coluna.tipo = 2;
+    	criar_coluna(Coluna);
     }
-    //criação dos campos da tabela
-    printf("Insira o tipo e o nome de cada campo\n1-char  2-int  3-float  4-double  5-string\nEx:'1 nome_campo'\n");
+    Coluna.ai = 0;
+    //criação dos Colunas da tabela
+    printf("Insira o tipo e o nome de cada coluna\n1-char  2-int  3-float  4-double  5-string\nEx:'1 nome_Coluna'\n");
     for(int i = 1; i <= numero; i++){
         printf("%do - ", i);
-        scanf("%d %s", &x, Campo.nome_campo);
-        if(x >= 1 && x <= 5){
+        scanf("%d %s", &Coluna.tipo, Coluna.nome_coluna);
+        if(Coluna.tipo >= 1 && Coluna.tipo <= 5){
             printf("Aceitara valores nulos?\n1-Nao  0-Sim\n");
-            scanf("%d", &Campo.not_null);
-            if(Campo.not_null >= 0 && Campo.not_null <= 1){
-                if(Campo.not_null == 0){
-                    criar_campo(nome, 0, x, 0, Campo.not_null, Campo.nome_campo);
+            scanf("%d", &Coluna.not_null);
+            if(Coluna.not_null >= 0 && Coluna.not_null <= 1){
+                if(Coluna.not_null == 0){
+                    criar_coluna(Coluna);
                 }
                 else{
-                    criar_campo(nome, 0, x, 0, Campo.not_null, Campo.nome_campo);
+                    criar_coluna(Coluna);
                 }
                 
             }
@@ -82,7 +89,8 @@ int checar_nome_tabela(char nome[100]){
 }
 void criar_arquivo(char nome[100]){
     char provisorio[100];
-    strcpy(provisorio, nome);
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
     //criação de arquivo com o nome do parâmetro + ".txt"
     FILE *arquivo = fopen(strcat(provisorio, ".txt"), "w");
     //caso de erro: arquivo não abre
@@ -108,18 +116,19 @@ void inserir_nome(char nome[100]){
     }
     fclose(arquivo);
 }
-void criar_campo(char nome[100], int cp, int tipo, int ai, int not_null, char campo[100]){
+void criar_coluna(coluna Coluna){
     char provisorio[100];
-    strcpy(provisorio, nome);
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, Coluna.nome_tabela);
     //abertura de arquivo da tabela nome[100] para escrita
     FILE *arquivo = fopen(strcat(provisorio, ".txt"), "a");
     //caso de erro: o arquivo não abre
     if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        printf("Erro na abertura do arquivo %s\n", Coluna.nome_tabela);
     }
-    //campo com as características do parâmetro é criado na tabela
+    //Coluna com as características do parâmetro é criado na tabela
     else{
-        fprintf(arquivo, "%d %d %d %d %s | ", cp, tipo, ai, not_null, campo);
+        fprintf(arquivo, "%d %d %d %s | ", Coluna.tipo, Coluna.ai, Coluna.not_null, Coluna.nome_coluna);
     }
     fclose(arquivo);
 }

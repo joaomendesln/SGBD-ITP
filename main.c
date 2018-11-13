@@ -15,6 +15,7 @@ int main(void){
                 break;
             case 2:
                 system("clear");
+                printf("Tabelas disponiveis:\n");
                 listar();
                 break;
             case 3:
@@ -27,7 +28,7 @@ int main(void){
                 printf("Valor invalido\n");
                 break;
         }
-        //printf("\n");
+        printf("\n");
     }
     return 0;
 }

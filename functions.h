@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
-struct campo{
-	int tipo, ai, not_null, cp;
-	char nome_campo[100];
-};
+typedef struct {
+	int tipo, ai, not_null;
+	char nome_coluna[100];
+	char nome_tabela[100];
+} coluna;
 void ler_nome_tabela(char nome_arquivo[100]);
 int checar_nome_tabela(char nome[100]);
 void listar();
