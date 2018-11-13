@@ -86,3 +86,24 @@ int checar_nome_tabela(char nome[100]){
         return 1;
     }  
 }
+int contar_linhas(char nome[100], int qtd){
+    coluna Coluna;
+    int cont = 0;
+    char c, a;
+    char provisorio[100];
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    FILE *leitura = fopen(strcat(provisorio, ".txt"), "r");
+    for(int i = 0; i < qtd; i++){
+        fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+    }
+    fscanf(leitura, "\n\n");
+    while(!feof(leitura)){
+        fscanf(leitura, "%c", &c);
+        a = (char) c;
+        if(a == '\n') cont++;
+    }
+    printf("c\n");
+    return cont-2;
+}
