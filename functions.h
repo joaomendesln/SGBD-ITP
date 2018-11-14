@@ -15,3 +15,4 @@ void inserir_nome(char nome[100]);
 void criar_coluna(coluna Coluna);
 void criar_tabela();
 void inserir_linha();
+int ultimo_id_tabela(char nome[100]);

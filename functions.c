@@ -65,6 +65,7 @@ void criar_tabela(){
         	i--;
         }
     }
+
 }
 int checar_nome_tabela(char nome[100]){
     char tabela[100];
@@ -147,9 +148,8 @@ int ler_tabela(char nome[100]){
     else{
         fscanf(arquivo, "%s\n", nome);
         fscanf(arquivo, "%c", &teste);
-        printf("f\n");
         a = (char)teste;
-        while (a != '\n'){
+        while (a != '\n' && !feof(arquivo)){
             fscanf(arquivo, "%c", &teste);
             a = (char) teste;
             if(a == '|') cont++;
@@ -184,6 +184,58 @@ int contar_linhas(char nome[100]){
     for(int i = 0; i < qtd; i++){
         fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
 }*/
+int ultimo_id_tabela(char nome[100]){
+    char provisorio[100];
+    char c, a;
+    int cont = 0, boolean = 1, chave = 0;
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    FILE *arquivo = fopen(strcat(provisorio, ".txt"), "a+");
+    //caso de erro: arquivo não abre
+    if(arquivo == NULL){
+        printf("Erro na abertura do arquivo %s\n", nome);
+    }
+    else {
+        while (fscanf(arquivo, "%c", &c) != EOF) {
+            a = (char) c;
+            if(a == '\n') {
+                cont++;
+            }
+        }
+        cont++;
+        printf("%d\n", cont);
+        if (cont == 2) return 0;
+        else {
+            int caracteres[cont];
+
+            for(int i = 0; i < cont; i++){
+                caracteres[i] = 0;
+            }
+            fseek(arquivo, 0, SEEK_SET);
+            for(int i = 0; i < cont; i++){
+                while (fscanf(arquivo, "%c", &c) != EOF) {
+                    caracteres[i] = caracteres[i] + 1;
+                    //printf("%c", c);
+                    a = (char) c;
+                    if(a == '\n') {
+                        break;
+                    }
+                } 
+            }
+
+            for(int i = 0; i < cont; i++){
+                printf("%d ", caracteres[i]);   
+            }
+            printf("\n");
+            fseek(arquivo, (-1 * caracteres[cont - 1]) - 1, SEEK_END);
+            fscanf(arquivo, "%d", &chave);
+            printf("%d\n", chave);
+            fclose(arquivo);
+            return chave;
+        }
+    }
+}
 void chamar_campos(char nome[100], int qtd){
     coluna Coluna;
     char provisorio[100], valor[100];
@@ -194,6 +246,7 @@ void chamar_campos(char nome[100], int qtd){
     FILE *leitura = fopen(strcat(provisorio, ".txt"), "r");
     FILE *escrita = fopen(provisorio, "a");
     fscanf(leitura, "%s\n", nome);
+    fprintf(escrita, "\n");
     for(int i = 0; i < qtd; i++){
         fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
         if(strcmp(Coluna.nome_coluna, "id") != 0 && i != 0){
@@ -201,14 +254,14 @@ void chamar_campos(char nome[100], int qtd){
             scanf("%s", valor);
             fprintf(escrita, "%s | ", valor);
             if(Coluna.ai == 1){
-                cont = contar_linhas(nome);
-                fprintf(escrita, "%d | ", cont);
+                cont = ultimo_id_tabela(nome);
+                fprintf(escrita, "%d | ", cont + 1);
             }
         }
         else{
             if(Coluna.ai == 1){
-                cont = contar_linhas(nome);
-                fprintf(escrita, "%d | ", cont);
+                cont = ultimo_id_tabela(nome);
+                fprintf(escrita, "%d | ", cont + 1);
             }
             /*else{
                 while(fim!=0){
@@ -220,7 +273,7 @@ void chamar_campos(char nome[100], int qtd){
             }*/
         }
     }
-    fprintf(escrita, "\n");
+    //fprintf(escrita, "\n");
     fclose(leitura);
     fclose(escrita);
 }
