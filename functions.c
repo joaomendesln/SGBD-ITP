@@ -32,7 +32,8 @@ void criar_tabela(){
     else{
     	printf("Insira o nome da chave primaria (deve ser do tipo int)\n");
     	scanf("%s", Coluna.nome_coluna);
-        Coluna.ai = 0;
+        printf("Terá auto-incremento?\n1-Sim  0-Não\n");
+        scanf("%d", &Coluna.ai);
         Coluna.not_null = 1;
         Coluna.tipo = 2;
     	criar_coluna(Coluna);
@@ -173,17 +174,41 @@ int contar_linhas(char nome[100]){
     }
     return cont-2;
 }
-/*int verificar_chave(char nome[100], int qtd){
+int verificar_chave(char nome[100], char valor[100]){
     coluna Coluna;
-    char provisorio[100];
+    char c, a;
+    char provisorio[100], chave[100];
     strcpy(provisorio, "./tabelas/");
     strcat(provisorio, nome);
     //criação de arquivo com o nome do parâmetro + ".txt"
     FILE *verifica = fopen(strcat(provisorio, ".txt"), "r");
     fscanf(verifica, "%s\n", nome);
-    for(int i = 0; i < qtd; i++){
-        fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
-}*/
+    fscanf(verifica, "%c", &c);
+    a = (char)c;
+    while (a != '\n' && !feof(verifica)){
+        fscanf(verifica, "%c", &c);
+        a = (char) c;
+        if(feof(verifica)){
+            fclose(verifica);
+            return 0;
+        } 
+    }
+    while(!feof(verifica)){
+        fscanf(verifica, "%s | ", chave);
+        if(strcmp(chave, valor) == 0) {
+            fclose(verifica);
+            return 1;
+        }
+        else{
+            while (a != '\n' && !feof(verifica)){
+                fscanf(verifica, "%c", &c);
+                a = (char) c;
+            }
+        }
+    }
+    fclose(verifica);
+    return 0;
+}
 int ultimo_id_tabela(char nome[100]){
     char provisorio[100];
     char c, a;
@@ -204,7 +229,7 @@ int ultimo_id_tabela(char nome[100]){
             }
         }
         cont++;
-        printf("%d\n", cont);
+        //printf("%d\n", cont);
         if (cont == 2) return 0;
         else {
             int caracteres[cont];
@@ -224,13 +249,13 @@ int ultimo_id_tabela(char nome[100]){
                 } 
             }
 
-            for(int i = 0; i < cont; i++){
+            /*for(int i = 0; i < cont; i++){
                 printf("%d ", caracteres[i]);   
-            }
-            printf("\n");
+            }*/
+            //printf("\n");
             fseek(arquivo, (-1 * caracteres[cont - 1]) - 1, SEEK_END);
             fscanf(arquivo, "%d", &chave);
-            printf("%d\n", chave);
+            //printf("%d\n", chave);
             fclose(arquivo);
             return chave;
         }
@@ -239,13 +264,16 @@ int ultimo_id_tabela(char nome[100]){
 void chamar_campos(char nome[100], int qtd){
     coluna Coluna;
     char provisorio[100], valor[100];
-    int x, cont = 0, fim = 1;
+    long long int x;
+    int cont = 0, fim = 1;
     strcpy(provisorio, "./tabelas/");
     strcat(provisorio, nome);
-    //criação de arquivo com o nome do parâmetro + ".txt"
+    //criação de ponteiros para escrita e leitura com o nome do parâmetro + ".txt"
     FILE *leitura = fopen(strcat(provisorio, ".txt"), "r");
     FILE *escrita = fopen(provisorio, "a");
+    //pulando a primeira linha (há apenas o nome da tabela)
     fscanf(leitura, "%s\n", nome);
+    //inserindo uma quebra de linha para inserir as próximas informações
     fprintf(escrita, "\n");
     for(int i = 0; i < qtd; i++){
         fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
@@ -253,24 +281,26 @@ void chamar_campos(char nome[100], int qtd){
             printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
             scanf("%s", valor);
             fprintf(escrita, "%s | ", valor);
-            if(Coluna.ai == 1){
+            /*if(Coluna.ai == 1){
                 cont = ultimo_id_tabela(nome);
                 fprintf(escrita, "%d | ", cont + 1);
-            }
+            }*/
         }
         else{
             if(Coluna.ai == 1){
                 cont = ultimo_id_tabela(nome);
                 fprintf(escrita, "%d | ", cont + 1);
             }
-            /*else{
+            else{
                 while(fim!=0){
                     printf("Insira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
-                    scanf("%d", &x);
-                    fim = verificar_chave(nome, qtd);
+                    scanf("%lli", &x);
+                    sprintf(valor, "%lli", x);
+                    fim = verificar_chave(nome, valor);
                     if(fim == 1) printf("Esse valor já foi inserido\n");
                 }
-            }*/
+                fprintf(escrita, "%s | ", valor);
+            }
         }
     }
     //fprintf(escrita, "\n");
