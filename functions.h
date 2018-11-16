@@ -16,3 +16,5 @@ void criar_coluna(coluna Coluna);
 void criar_tabela();
 void inserir_linha();
 int ultimo_id_tabela(char nome[100]);
+void listar_conteudo();
+void pesquisar_campo();

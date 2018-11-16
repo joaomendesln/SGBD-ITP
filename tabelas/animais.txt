@@ -1,4 +1,0 @@
-animais
-2 1 1 id | 5 0 1 nome | 
-1 | jooj | 
-2 | danilo | 

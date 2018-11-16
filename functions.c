@@ -3,6 +3,8 @@ int checar_nome_tabela(char nome[100]);
 void criar_arquivo(char nome[100]);
 void inserir_nome(char nome[100]);
 void criar_coluna(coluna Coluna);
+void ler_nome_tabela(char nome_arquivo[100]);
+
 void criar_tabela(){
 	coluna Coluna;
     //char nome[100], Coluna[100];
@@ -41,7 +43,7 @@ void criar_tabela(){
     Coluna.ai = 0;
     //criação dos Colunas da tabela
     printf("Insira o tipo e o nome de cada coluna\n1-char  2-int  3-float  4-double  5-string\nEx:'1 nome_Coluna'\n");
-    for(int i = 1; i <= qtd; i++){
+    for(int i = 1; i < qtd; i++){
         printf("%do - ", i);
         scanf("%d %s", &Coluna.tipo, Coluna.nome_coluna);
         if(Coluna.tipo >= 1 && Coluna.tipo <= 5){
@@ -66,8 +68,8 @@ void criar_tabela(){
         	i--;
         }
     }
-
 }
+
 int checar_nome_tabela(char nome[100]){
     char tabela[100];
     //abertura de arquivo tabelas.txt para leitura 
@@ -90,6 +92,7 @@ int checar_nome_tabela(char nome[100]){
     fclose(arquivo);
     return 1;
 }
+
 void criar_arquivo(char nome[100]){
     char provisorio[100];
     strcpy(provisorio, "./tabelas/");
@@ -106,6 +109,7 @@ void criar_arquivo(char nome[100]){
     }
     fclose(arquivo);
 }
+
 void inserir_nome(char nome[100]){
     //abertura de arquivo tabelas.txt, com listagem do nome de todas as tabelas, para escrita
     FILE *arquivo = fopen("tabelas.txt", "a");
@@ -119,6 +123,7 @@ void inserir_nome(char nome[100]){
     }
     fclose(arquivo);
 }
+
 void criar_coluna(coluna Coluna){
     char provisorio[100];
     strcpy(provisorio, "./tabelas/");
@@ -135,6 +140,7 @@ void criar_coluna(coluna Coluna){
     }
     fclose(arquivo);
 }
+
 int ler_tabela(char nome[100]){
     char teste, a;
     int cont = 0;
@@ -159,6 +165,7 @@ int ler_tabela(char nome[100]){
         return cont;
     }
 }
+
 int contar_linhas(char nome[100]){
     int cont = 0;
     char c, a;
@@ -174,6 +181,7 @@ int contar_linhas(char nome[100]){
     }
     return cont-2;
 }
+
 int verificar_chave(char nome[100], char valor[100]){
     coluna Coluna;
     char c, a;
@@ -209,6 +217,7 @@ int verificar_chave(char nome[100], char valor[100]){
     fclose(verifica);
     return 0;
 }
+
 int ultimo_id_tabela(char nome[100]){
     char provisorio[100];
     char c, a;
@@ -261,6 +270,7 @@ int ultimo_id_tabela(char nome[100]){
         }
     }
 }
+
 void chamar_campos(char nome[100], int qtd){
     coluna Coluna;
     char provisorio[100], valor[100];
@@ -281,10 +291,6 @@ void chamar_campos(char nome[100], int qtd){
             printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
             scanf("%s", valor);
             fprintf(escrita, "%s | ", valor);
-            /*if(Coluna.ai == 1){
-                cont = ultimo_id_tabela(nome);
-                fprintf(escrita, "%d | ", cont + 1);
-            }*/
         }
         else{
             if(Coluna.ai == 1){
@@ -309,7 +315,6 @@ void chamar_campos(char nome[100], int qtd){
 }
 void inserir_linha(){
 	char nome[100];
-    coluna Coluna;
 	int fim = 1, colunas;
 	while(fim!=0){
     	printf("Insira o nome da tabela\n");
@@ -322,7 +327,6 @@ void inserir_linha(){
     chamar_campos(nome, colunas);
 }
 
-//void ler_nome_tabela(char nome_arquivo[100]);
 void listar(){
     char nome[100];
     //abertura de arquivo tabelas.txt para leitura 
@@ -338,4 +342,121 @@ void listar(){
         }
     }
     fclose(arquivo);
+}
+
+void listar_conteudo(){
+    char nome[100], a, c;
+    int fim = 1;
+    while(fim!=0){
+        printf("Insira o nome da tabela\n");
+        scanf("%s", nome);
+        fim = checar_nome_tabela(nome);
+        if(fim == 1) printf("Essa tabela nao existe\n");
+    }
+    printf("\n");
+    char provisorio[100];
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    FILE *arquivo = fopen(strcat(provisorio, ".txt"), "r");
+    //caso de erro: arquivo não abre
+    if(arquivo == NULL){
+        printf("Erro na abertura do arquivo %s\n", nome);
+    }
+    else{
+        fscanf(arquivo, "%s\n", nome);
+        fscanf(arquivo, "%c", &c);
+        a = (char)c;
+        while (a != '\n' && !feof(arquivo)){
+            fscanf(arquivo, "%c", &c);
+            a = (char) c;
+            if(feof(arquivo)){
+                printf("Não há conteudo na tabela escolhida");
+            } 
+        }
+        while (!feof(arquivo)){
+            fscanf(arquivo, "%c", &c);
+            a = (char) c;
+            printf("%c", a);
+        }
+        fclose(arquivo);
+        printf("\n");
+    }
+}
+
+void pesquisar_registro(char nome[100], int posicao){
+    char provisorio[100];
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    FILE *arquivo = fopen(strcat(provisorio, ".txt"), "r");
+    //caso de erro: arquivo não abre
+    if(arquivo == NULL){
+        printf("Erro na abertura do arquivo %s\n", nome);
+    }
+    else{
+
+        fclose(arquivo);
+    }
+}
+
+void pesquisar_campo(){
+    char nome[100], campo[100], a, c;
+    int fim = 1, cont = 0, posicao;
+    while(fim!=0){
+        printf("Insira o nome da tabela\n");
+        scanf("%s", nome);
+        fim = checar_nome_tabela(nome);
+        if(fim == 1) printf("Essa tabela nao existe\n");
+    }
+    printf("\n");
+    char provisorio[100];
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    FILE *arquivo = fopen(strcat(provisorio, ".txt"), "r");
+    //caso de erro: arquivo não abre
+    if(arquivo == NULL){
+        printf("Erro na abertura do arquivo %s\n", nome);
+    }
+    else{
+        fscanf(arquivo, "%s\n", nome);
+        while (a != '\n' && !feof(arquivo)){
+            fscanf(arquivo, "%c", &c);
+            a = (char) c;
+            if(a == '|') cont++;
+            if(feof(arquivo)){
+                printf("Não há conteudo na tabela escolhida");
+            } 
+        }
+        coluna *Colunas = NULL;
+        Colunas = malloc(cont*sizeof(coluna));
+        fseek(arquivo, 0, SEEK_SET);
+        fscanf(arquivo, "%s\n", nome);
+        for(int i = 0; i < cont; i++){
+            fscanf(arquivo, "%d %d %d %s | ", &Colunas[i].tipo, &Colunas[i].ai, &Colunas[i].not_null, Colunas[i].nome_coluna);
+        }
+        printf("Colunas disponiveis:\n");
+        for(int i = 0; i < cont; i++){
+            printf("%s  ", Colunas[i].nome_coluna);
+            if(i % 3 == 0 && i != 0 && i != (cont-1)) printf("\n");
+        }
+        fim = 1;
+        printf("\n");
+        while(fim!=0){
+            printf("Insira o campo em que deseja pesquisar\n");
+            scanf("%s", campo);
+            for(int i = 0; i < cont; i++){
+                if(strcmp(campo, Colunas[i].nome_coluna) == 0){
+                    fim = 0;
+                    posicao = i;
+                }
+            }
+            if(fim == 1) printf("Esse campo não existe\n");
+        }
+        fclose(arquivo);
+        //pesquisar_registro(nome, posicao);
+        free(Colunas);
+    }
+    printf("\n");
 }
