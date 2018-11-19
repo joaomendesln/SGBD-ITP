@@ -1,5 +1,5 @@
 tarefas:
->usar structs e alocação dinamica
+>usar structs(semi-feito)
 >modificar campos para não aceitar nulo, à gosto do usuario
 >pesquisar valores
 >excluir linhas e tabelas (arquivos provisorios)
@@ -8,5 +8,3 @@ tarefas:
 -checar se nome do campo tem espaço
 -comparar tipo inserido com tipo que está no arquivo
 erros:
->leitura não mostra nada caso não haja tabelas
-

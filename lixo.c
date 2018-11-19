@@ -107,3 +107,27 @@ int contar_linhas(char nome[100], int qtd){
     printf("c\n");
     return cont-2;
 }
+void abrir_arquivo(){
+    char provisorio[100];
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    FILE *arquivo = fopen(strcat(provisorio, ".txt"), "w");
+}
+int contar_linhas(char nome[100]){
+    int cont = 0;
+    char c, a;
+    alocar_arquivo(&arquivo, nome, 'r');
+    while(!feof(arquivo)){
+        fscanf(arquivo, "%c", &c);
+        a = (char) c;
+        if(a == '\n') cont++;
+    }
+    return cont-2;
+}
+void mostrar_num_caracteres(){
+    /*for(int i = 0; i < cont; i++){
+        printf("%d ", caracteres[i]);   
+    }*/
+    //printf("\n");
+}
