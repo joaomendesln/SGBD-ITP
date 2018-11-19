@@ -1,10 +1,4 @@
 #include "functions.h"
-int checar_nome_tabela(char nome[100]);
-void criar_arquivo(char nome[100]);
-void inserir_nome(char nome[100]);
-void criar_coluna(coluna Coluna);
-void ler_nome_tabela(char nome_arquivo[100]);
-
 void criar_tabela(){
 	coluna Coluna;
     //char nome[100], Coluna[100];
@@ -16,57 +10,67 @@ void criar_tabela(){
     	fim = checar_nome_tabela(Coluna.nome_tabela);
     	if(fim == 0) printf("Essa tabela ja existe\n");
     }
+    fim = 0;
     criar_arquivo(Coluna.nome_tabela);
     inserir_nome(Coluna.nome_tabela);
-    printf("Insira o numero de colunas\n");
-    scanf("%d", &qtd);
-    printf("Deseja criar uma chave primaria padrão?\n1-Sim  0-Nao\n");
-    scanf("%d", &sid);
-    //chave primária padrão é criada
-    if(sid == 1){
-        strcpy(Coluna.nome_coluna, "id");
-        Coluna.ai = 1;
-        Coluna.not_null = 1;
-        Coluna.tipo = 2;
-    	criar_coluna(Coluna);
+    while(fim!=1){
+        printf("Insira o numero de colunas\n");
+        scanf("%d", &qtd);
+        if(qtd > 0) fim = 1;
+        else printf("Insira um valor maior que zero\n");
     }
-    //chave primária personalizada é criada
-    else{
-    	printf("Insira o nome da chave primaria (deve ser do tipo int)\n");
-    	scanf("%s", Coluna.nome_coluna);
-        printf("Terá auto-incremento?\n1-Sim  0-Não\n");
-        scanf("%d", &Coluna.ai);
-        Coluna.not_null = 1;
-        Coluna.tipo = 2;
-    	criar_coluna(Coluna);
+    fim = 0;
+    while(fim!=1){
+        printf("Deseja criar uma chave primaria padrão?\n1-Sim  0-Nao\n");
+        scanf("%d", &sid);
+        if(sid >= 0 && sid < 2){
+            fim = 1;
+            //chave primária padrão é criada
+            if(sid == 1){
+                strcpy(Coluna.nome_coluna, "id");
+                Coluna.ai = 1;
+                Coluna.not_null = 1;
+                Coluna.tipo = 2;
+                criar_coluna(Coluna);
+            }
+            //chave primária personalizada é criada
+            else{
+                fim = 0;
+                printf("Insira o nome da chave primaria (deve ser do tipo int)\n");
+                scanf("%s", Coluna.nome_coluna);
+                while(fim!=1){
+                    printf("Terá auto-incremento?\n1-Sim  0-Não\n");
+                    scanf("%d", &Coluna.ai);
+                    if(Coluna.ai >= 0 && Coluna.ai < 2) fim = 1;
+                    else printf("Insira um valor válido\n");
+                }
+                Coluna.not_null = 1;
+                Coluna.tipo = 2;
+                criar_coluna(Coluna);
+            }
+        }
+        else printf("Insira um valor válido\n");
     }
+    fim = 0;   
     Coluna.ai = 0;
     //criação dos Colunas da tabela
     printf("Insira o tipo e o nome de cada coluna\n1-char  2-int  3-float  4-double  5-string\nEx:'1 nome_Coluna'\n");
-    for(int i = 1; i < qtd; i++){
-        printf("%do - ", i);
-        scanf("%d %s", &Coluna.tipo, Coluna.nome_coluna);
-        if(Coluna.tipo >= 1 && Coluna.tipo <= 5){
-            printf("Aceitara valores nulos?\n1-Nao  0-Sim\n");
+    for(int i = 2; i <= qtd; i++){
+        while(fim != 1){
+            printf("%dº - ", i);
+            scanf("%d %s", &Coluna.tipo, Coluna.nome_coluna);
+            if(Coluna.tipo >= 1 && Coluna.tipo <= 5) fim = 1;
+            else printf("Insira um tipo válido\n");
+        }
+        fim = 0;
+        while(fim != 1){
+            printf("Aceitará valores nulos?\n1-Nao  0-Sim\n");
             scanf("%d", &Coluna.not_null);
-            if(Coluna.not_null >= 0 && Coluna.not_null <= 1){
-                if(Coluna.not_null == 0){
-                    criar_coluna(Coluna);
-                }
-                else{
-                    criar_coluna(Coluna);
-                }
-                
-            }
-            else{
-                printf("Valor Invalido\n");
-                i--;
-            }
+            if(Coluna.not_null >= 0 && Coluna.not_null <= 1) fim = 1;
+            else printf("Insira um valor válido\n");
         }
-        else{
-        	printf("Valor Invalido\n");
-        	i--;
-        }
+        fim = 0;
+        criar_coluna(Coluna);
     }
 }
 
@@ -90,6 +94,7 @@ int checar_nome_tabela(char nome[100]){
         }        
     }
     fclose(arquivo);
+    //retorno 1 caso não haja uma tabela com o nome escolhido
     return 1;
 }
 
@@ -193,7 +198,7 @@ int verificar_chave(char nome[100], char valor[100]){
     fscanf(verifica, "%s\n", nome);
     fscanf(verifica, "%c", &c);
     a = (char)c;
-    while (a != '\n' && !feof(verifica)){
+    while(a != '\n' && !feof(verifica)){
         fscanf(verifica, "%c", &c);
         a = (char) c;
         if(feof(verifica)){
@@ -221,7 +226,7 @@ int verificar_chave(char nome[100], char valor[100]){
 int ultimo_id_tabela(char nome[100]){
     char provisorio[100];
     char c, a;
-    int cont = 0, boolean = 1, chave = 0;
+    int cont = 0, chave = 0;
     strcpy(provisorio, "./tabelas/");
     strcat(provisorio, nome);
     //criação de arquivo com o nome do parâmetro + ".txt"
@@ -401,7 +406,7 @@ void pesquisar_registro(char nome[100], int posicao){
 }
 
 void pesquisar_campo(){
-    char nome[100], campo[100], a, c;
+    char nome[100], campo[100], a, c, conteudo = 0;
     int fim = 1, cont = 0, posicao;
     while(fim!=0){
         printf("Insira o nome da tabela\n");
@@ -427,36 +432,39 @@ void pesquisar_campo(){
             if(a == '|') cont++;
             if(feof(arquivo)){
                 printf("Não há conteudo na tabela escolhida");
+                conteudo = 1;
             } 
         }
-        coluna *Colunas = NULL;
-        Colunas = malloc(cont*sizeof(coluna));
-        fseek(arquivo, 0, SEEK_SET);
-        fscanf(arquivo, "%s\n", nome);
-        for(int i = 0; i < cont; i++){
-            fscanf(arquivo, "%d %d %d %s | ", &Colunas[i].tipo, &Colunas[i].ai, &Colunas[i].not_null, Colunas[i].nome_coluna);
-        }
-        printf("Colunas disponiveis:\n");
-        for(int i = 0; i < cont; i++){
-            printf("%s  ", Colunas[i].nome_coluna);
-            if(i % 3 == 0 && i != 0 && i != (cont-1)) printf("\n");
-        }
-        fim = 1;
-        printf("\n");
-        while(fim!=0){
-            printf("Insira o campo em que deseja pesquisar\n");
-            scanf("%s", campo);
+        if(conteudo = 0){
+            coluna *Colunas = NULL;
+            Colunas = malloc(cont*sizeof(coluna));
+            fseek(arquivo, 0, SEEK_SET);
+            fscanf(arquivo, "%s\n", nome);
             for(int i = 0; i < cont; i++){
-                if(strcmp(campo, Colunas[i].nome_coluna) == 0){
-                    fim = 0;
-                    posicao = i;
-                }
+                fscanf(arquivo, "%d %d %d %s | ", &Colunas[i].tipo, &Colunas[i].ai, &Colunas[i].not_null, Colunas[i].nome_coluna);
             }
-            if(fim == 1) printf("Esse campo não existe\n");
+            printf("Colunas disponiveis:\n");
+            for(int i = 0; i < cont; i++){
+                printf("%s  ", Colunas[i].nome_coluna);
+                if(i % 3 == 0 && i != 0 && i != (cont-1)) printf("\n");
+            }
+            fim = 1;
+            printf("\n");
+            while(fim!=0){
+                printf("Insira o campo em que deseja pesquisar\n");
+                scanf("%s", campo);
+                for(int i = 0; i < cont; i++){
+                    if(strcmp(campo, Colunas[i].nome_coluna) == 0){
+                        fim = 0;
+                        posicao = i;
+                    }
+                }
+                if(fim == 1) printf("Esse campo não existe\n");
+            }
+            free(Colunas);
         }
         fclose(arquivo);
         //pesquisar_registro(nome, posicao);
-        free(Colunas);
     }
     printf("\n");
 }
