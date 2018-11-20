@@ -1,7 +1,11 @@
+#ifndef _FUNCTIONS_
+#define _FUNCTIONS_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
+#include <math.h>
 typedef struct {
 	int tipo, ai, not_null;
 	char nome_coluna[100];
@@ -23,3 +27,5 @@ void pesquisar_registro(char *nome, int posicao);
 void receber_nome_tabela(char *nome, int i);
 int ultimo_id_tabela(char *nome);
 int verificar_chave(char *nome, char *valor);
+
+#endif

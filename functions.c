@@ -1,6 +1,75 @@
 #include "functions.h"
+#include <stdio.h>
 #define TAMANHO 100
 FILE* arquivo;
+
+int checar_char(char *nome){
+    int tamanho = strlen(nome);
+    if (tamanho > 1) return 0;
+    return 1;
+}
+
+int checar_float(char *nome){
+    int tamanho = strlen(nome), x, p, pontos = 0;
+
+    p = (int)nome[0];
+    if (p != 45 && p < 48 || p > 57){
+        return 0;
+    }
+
+    for (int i = tamanho - 1; i > 0; i--){
+        x = (int)nome[i];
+        if (x != 46 && x < 48 || x > 57){
+            return 0;
+        }
+    }
+
+    for (int i = tamanho - 1; i > 0; i--){
+        x = (int)nome[i];
+        if (x == 46) pontos++;
+    }
+
+    if (pontos > 1) return 0;
+    return 1;
+}
+
+int checar_inteiro(char *nome){
+    int tamanho = strlen(nome), x, p;
+
+    p = (int)nome[0];
+    if (p != 45 && p < 48 || p > 57){
+        return 0;
+    }
+
+    for (int i = tamanho - 1; i > 0; i--){
+        x = (int)nome[i];
+        if (x < 48 || x > 57){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int converter_string_em_inteiro(char *nome){
+    int tamanho = strlen(nome), numero = 0, sinal = 1, p = (int)nome[0];
+    float cont = 0;
+    if(p != 45){
+        for (int i = tamanho - 1; i >= 0; i--){
+            int x = (int)nome[i] % 48;
+            numero += x * pow(10,cont);
+            cont++;
+        }
+    }
+    else{
+        for (int i = tamanho - 1; i > 0; i--){
+            int x = (int)nome[i] % 48;
+            numero += x * pow(10,cont);
+            cont++;
+        }
+        numero *= -1;
+    }
+    return numero;
+}
 
 void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
     char *provisorio;
@@ -339,10 +408,13 @@ void pesquisar_campo(){
 }
 
 void pesquisar_registro(char *nome, int posicao){
-    char *valor;
+    char *valor, *comparador, a, b, c, d;
+    FILE *leitura, *mostrar;
+    alocar_arquivo(&leitura, nome, "r");
+    alocar_arquivo(&mostrar, nome, "r");
+    comparador = malloc(TAMANHO);
     valor = malloc(TAMANHO);
-    int x;
-    alocar_arquivo(&arquivo, nome, "r");
+    int x = 1, y, z, cont = 0;
     //caso de erro: arquivo não abre
     if(arquivo == NULL){
         printf("Erro na abertura do arquivo %s\n", nome);
@@ -352,6 +424,7 @@ void pesquisar_registro(char *nome, int posicao){
         scanf("%s", valor);
         system("clear");
         while(x != 0){
+            cont = 0;
             printf("----- PESQUISAR VALOR -----\n");
             printf("Escolha a opção para a pesquisa:\n");
             printf("1-Valores maiores que o valor informado\n");
@@ -362,40 +435,112 @@ void pesquisar_registro(char *nome, int posicao){
             printf("6-Valores próximo ao valor informado\n");
             printf("0-Parar pesquisa\n");
             scanf("%d", &x);
-            switch(x){
-                case 1:
-                    system("clear");
-                    break;
-                case 2:
-                    system("clear");
-                    break;
-                case 3:
-                    system("clear");
-                    fseek(arquivo, 0, SEEK_SET);
-                    fscanf(arquivo, "%s\n", nome);
-                    fscanf(arquivo, "\n");
-                    fscanf(arquivo, "%s", valor);
-                    printf("%s\n", valor);
-                    break;
-                case 4:
-                    system("clear");
-                    break;
-                case 5:
-                    system("clear");
-                    break;
-                case 6:
-                    system("clear");
-                    break;
-                case 0:
-                    system("clear");
-                    break;
-                default:
-                    system("clear");
-                    printf("Opção inválida\n");
+            if(x < 0 || x > 6){
+                system("clear");
+                printf("Opção inválida\n");
+            }
+            else if(x != 0){
+                //system("clear");
+                y = converter_string_em_inteiro(valor);
+                fseek(leitura, 0, SEEK_SET);
+                fseek(mostrar, 0, SEEK_SET);
+                fscanf(leitura, "%s\n", nome);
+                fscanf(leitura, "%c", &b);
+                a = (char)b;
+                while(a != '\n' && !feof(leitura)){
+                    fscanf(leitura, "%c", &b);
+                    a = (char) b;
+                }
+                fscanf(mostrar, "%s\n", nome);
+                fscanf(mostrar, "%c", &d);
+                c = (char)d;
+                while(c != '\n' && !feof(mostrar)){
+                    fscanf(mostrar, "%c", &d);
+                    c = (char) d;
+                }
+                printf("----- Resultado -----\n");
+                while(!feof(mostrar)){
+                    for(int i = 0; i <= posicao; i++){
+                        fscanf(mostrar, "%s |", comparador);
+                        z = converter_string_em_inteiro(comparador);
+                        if(i == posicao){
+                            fscanf(leitura, "%c", &b);
+                            a = (char) b;
+                            if(x == 1){
+                                if(y < z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y < z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 2){
+                                if(y <= z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y <= z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 3){
+                                if(y == z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y == z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 4){
+                                if(y > z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y > z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 5){
+                                if(y >= z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y >= z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 6){
+                                printf("ainda não foi feito\n");
+                            }
+                            fscanf(mostrar, "%c", &d);
+                            c = (char) d;
+                            while(c != '\n' && !feof(mostrar)){
+                                fscanf(mostrar, "%c", &d);
+                                c = (char) d;
+                            }
+                        }
+                    }
+                }
+                if(cont == 0) printf("Nenhum valor encontrado\n");
+                printf("\n");
             }
         }
-        fclose(arquivo);
+        fclose(leitura);
+        fclose(mostrar);
     }
+    free(comparador);
     free(valor);
 }
 

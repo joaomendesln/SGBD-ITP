@@ -1,4 +1,6 @@
 #include "functions.h"
+#include <stdio.h>
+
 int main(void){
     system("clear");
     int x, fim=0, inser = 1;
