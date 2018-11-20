@@ -281,10 +281,10 @@ void listar_conteudo(){
 }
 
 void pesquisar_campo(){
-    char *nome, *campo, a, c, conteudo = 0;
+    char *nome, *campo, a, c;
     nome = malloc(TAMANHO);
     campo = malloc(TAMANHO);
-    int fim = 1, cont = 0, posicao;
+    int fim = 1, cont = 0, posicao, conteudo = 0;
     receber_nome_tabela(nome, 1);
     printf("\n");
     alocar_arquivo(&arquivo, nome, "r");
@@ -332,23 +332,71 @@ void pesquisar_campo(){
             free(Colunas);
         }
         fclose(arquivo);
-        //pesquisar_registro(nome, posicao);
+        pesquisar_registro(nome, posicao);
     }
     free(campo);
     free(nome);
-    printf("\n");
 }
 
 void pesquisar_registro(char *nome, int posicao){
+    char *valor;
+    valor = malloc(TAMANHO);
+    int x;
     alocar_arquivo(&arquivo, nome, "r");
     //caso de erro: arquivo não abre
     if(arquivo == NULL){
         printf("Erro na abertura do arquivo %s\n", nome);
     }
     else{
-
+        printf("Insira o valor a ser pesquisado\n");
+        scanf("%s", valor);
+        system("clear");
+        while(x != 0){
+            printf("----- PESQUISAR VALOR -----\n");
+            printf("Escolha a opção para a pesquisa:\n");
+            printf("1-Valores maiores que o valor informado\n");
+            printf("2-Valores maiores que ou iguais ao valor informado\n");
+            printf("3-Valores iguais ao valor informado\n");
+            printf("4-Valores menores que o valor informado\n");
+            printf("5-Valores menores que ou iguais ao valor informado\n");
+            printf("6-Valores próximo ao valor informado\n");
+            printf("0-Parar pesquisa\n");
+            scanf("%d", &x);
+            switch(x){
+                case 1:
+                    system("clear");
+                    break;
+                case 2:
+                    system("clear");
+                    break;
+                case 3:
+                    system("clear");
+                    fseek(arquivo, 0, SEEK_SET);
+                    fscanf(arquivo, "%s\n", nome);
+                    fscanf(arquivo, "\n");
+                    fscanf(arquivo, "%s", valor);
+                    printf("%s\n", valor);
+                    break;
+                case 4:
+                    system("clear");
+                    break;
+                case 5:
+                    system("clear");
+                    break;
+                case 6:
+                    system("clear");
+                    break;
+                case 0:
+                    system("clear");
+                    break;
+                default:
+                    system("clear");
+                    printf("Opção inválida\n");
+            }
+        }
         fclose(arquivo);
     }
+    free(valor);
 }
 
 void receber_nome_tabela(char *nome, int i){
