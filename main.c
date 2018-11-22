@@ -1,12 +1,11 @@
 #include "functions.h"
 #include <stdio.h>
-
 int main(void){
     system("clear");
     int x, fim=0, inser = 1;
     printf("Bem-vindo/a ao banco de dados\n\n");
     while(fim != 1){
-        printf("----- MENU -----\n1-Criar tabela\n2-Listar todas as tabelas\n3-Inserir registro em uma tabela\n4-Listar dados de uma tabela\n5-Pesquisar valor em uma tabela\n0-Sair\n");
+        printf("----- MENU -----\n1-Criar tabela\n2-Listar todas as tabelas\n3-Inserir registro em uma tabela\n4-Listar dados de uma tabela\n5-Pesquisar valor em uma tabela\n7-Apagar uma tabela\n0-Sair\n");
         scanf("%d", &x);
         getchar();
         switch(x){
@@ -50,6 +49,11 @@ int main(void){
                 system("clear");
                 printf("----- PESQUISAR VALOR -----\n");
                 pesquisar_campo();
+                break;
+            case 7:
+                system("clear");
+                printf("----- DIGITE O NOME DA TABELA -----\n");
+                //apagar_tabela();
                 break;
             case 0:
                 system("clear");

@@ -3,6 +3,108 @@
 #define TAMANHO 100
 FILE* arquivo;
 
+/*void apagar_tabela(){
+    int status;
+    char *nome;
+    nome = malloc(TAMANHO);
+    receber_nome_tabela(nome, 1);
+    FILE *listaProvisoria = fopen("provisorios/lista_provisoria.txt", "w+");
+    FILE *listaTabelas = fopen("tabelas.txt", "r");
+    FILE *escreverListaTabelas = fopen("tabelas.txt", "w+");
+    char *nomeTabela;
+    nomeTabela = malloc(TAMANHO);
+    //caso de erro: arquivo não abre
+    if(listaTabelas == NULL){
+        printf("Erro na abertura do arquivo %s\n", nome);
+    }
+    //leitura dos nomes das tabelas até o fim do arquivo
+    else{   
+        while(fscanf(listaTabelas, "%s\n", nomeTabela) != EOF){
+            if(strcmp(nome, nomeTabela) != 0) {
+                fprintf(listaProvisoria, "%s\n", nomeTabela);
+            }
+        }
+        fprintf(escreverListaTabelas, "\n");
+        fclose(listaTabelas);
+
+        status = remove("tabelas.txt");
+        //status += apagar arquivo da tabela
+        
+        if (status == 0) printf("Tabela deletada com sucesso!");
+
+        fseek(listaProvisoria, 0, SEEK_SET);
+
+        while(fscanf(listaProvisoria, "%s\n", nomeTabela) != EOF){
+            printf("%s\n", nomeTabela);
+            fprintf(escreverListaTabelas, "%s\n", nomeTabela);
+        }
+        fclose(escreverListaTabelas);
+    }
+    free(nome);
+    free(nomeTabela);
+}*/
+
+void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
+    char *provisorio;
+    provisorio = malloc(TAMANHO);
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    *ptr = fopen(strcat(provisorio, ".txt"), modo);
+    free(provisorio);
+}
+
+void chamar_campos(char *nome, int qtd){
+    coluna Coluna;
+    char *valor;
+    valor = malloc(TAMANHO);
+    int cont = 0, fim = 1, validarCampo = 0;
+    //criação de ponteiros para escrita e leitura com o nome do parâmetro + ".txt"
+    FILE *leitura, *escrita;
+    alocar_arquivo(&leitura, nome, "r");
+    alocar_arquivo(&escrita, nome, "a");
+    //pulando a primeira linha (há apenas o nome da tabela)
+    fscanf(leitura, "%s\n", nome);
+    //inserindo uma quebra de linha para inserir as próximas informações
+    fprintf(escrita, "\n");
+    for(int i = 0; i < qtd; i++){
+        fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+        if(strcmp(Coluna.nome_coluna, "id") != 0 && i != 0){
+            printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
+            while (validarCampo != 1){
+                scanf("%s", valor);
+                validarCampo = checar_chamada_campo(valor, Coluna.tipo);
+                if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
+            }
+            validarCampo = 0;
+            fprintf(escrita, "%s | ", valor);
+        }
+        else{
+            if(Coluna.ai == 1){
+                cont = ultimo_id_tabela(nome);
+                fprintf(escrita, "%d | ", cont + 1);
+            }
+            else{
+                while(fim!=0){
+                    printf("Insira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
+                    while (validarCampo != 1){
+                        scanf("%s", valor);
+                        validarCampo = checar_chamada_campo(valor, Coluna.tipo);
+                        if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
+                    }
+                    validarCampo = 0;
+                    fim = verificar_chave(nome, valor);
+                    if(fim == 1) printf("Esse valor já foi inserido\n");
+                }
+                fprintf(escrita, "%s | ", valor);
+            }
+        }
+    }
+    free(valor);
+    fclose(leitura);
+    fclose(escrita);
+}
+
 int checar_char(char *nome){
     int tamanho = strlen(nome);
     if (tamanho > 1) return 0;
@@ -50,78 +152,28 @@ int checar_inteiro(char *nome){
     return 1;
 }
 
-int converter_string_em_inteiro(char *nome){
-    int tamanho = strlen(nome), numero = 0, sinal = 1, p = (int)nome[0];
-    float cont = 0;
-    if(p != 45){
-        for (int i = tamanho - 1; i >= 0; i--){
-            int x = (int)nome[i] % 48;
-            numero += x * pow(10,cont);
-            cont++;
-        }
+int checar_chamada_campo(char *nome, int tipo){
+    if (tipo == 1){
+        int c = checar_char(nome);
+        if (c == 0) return 0;
+        return 1;
     }
-    else{
-        for (int i = tamanho - 1; i > 0; i--){
-            int x = (int)nome[i] % 48;
-            numero += x * pow(10,cont);
-            cont++;
-        }
-        numero *= -1;
+    if (tipo == 2){
+        int i = checar_inteiro(nome);
+        if (i == 0) return 0;
+        return 1;
     }
-    return numero;
-}
-
-void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
-    char *provisorio;
-    provisorio = malloc(TAMANHO);
-    strcpy(provisorio, "./tabelas/");
-    strcat(provisorio, nome);
-    //criação de arquivo com o nome do parâmetro + ".txt"
-    *ptr = fopen(strcat(provisorio, ".txt"), modo);
-    free(provisorio);
-}
-
-void chamar_campos(char *nome, int qtd){
-    coluna Coluna;
-    char *valor;
-    valor = malloc(TAMANHO);
-    long long int x;
-    int cont = 0, fim = 1;
-    //criação de ponteiros para escrita e leitura com o nome do parâmetro + ".txt"
-    FILE *leitura, *escrita;
-    alocar_arquivo(&leitura, nome, "r");
-    alocar_arquivo(&escrita, nome, "a");
-    //pulando a primeira linha (há apenas o nome da tabela)
-    fscanf(leitura, "%s\n", nome);
-    //inserindo uma quebra de linha para inserir as próximas informações
-    fprintf(escrita, "\n");
-    for(int i = 0; i < qtd; i++){
-        fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
-        if(strcmp(Coluna.nome_coluna, "id") != 0 && i != 0){
-            printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
-            scanf("%s", valor);
-            fprintf(escrita, "%s | ", valor);
-        }
-        else{
-            if(Coluna.ai == 1){
-                cont = ultimo_id_tabela(nome);
-                fprintf(escrita, "%d | ", cont + 1);
-            }
-            else{
-                while(fim!=0){
-                    printf("Insira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
-                    scanf("%lli", &x);
-                    sprintf(valor, "%lli", x);
-                    fim = verificar_chave(nome, valor);
-                    if(fim == 1) printf("Esse valor já foi inserido\n");
-                }
-                fprintf(escrita, "%s | ", valor);
-            }
-        }
+    if (tipo == 3){
+        int f = checar_float(nome);
+        if (f == 0) return 0;
+        return 1;
     }
-    free(valor);
-    fclose(leitura);
-    fclose(escrita);
+    if (tipo == 4){
+        int d = checar_float(nome);
+        if (d == 0) return 0;
+        return 1;
+    }
+    return 1;
 }
 
 int checar_nome_tabela(char *nome){
@@ -148,6 +200,27 @@ int checar_nome_tabela(char *nome){
     fclose(arquivo);
     //retorno 1 caso não haja uma tabela com o nome escolhido
     return 1;
+}
+
+int converter_string_em_inteiro(char *nome){
+    int tamanho = strlen(nome), numero = 0, sinal = 1, p = (int)nome[0];
+    float cont = 0;
+    if(p != 45){
+        for (int i = tamanho - 1; i >= 0; i--){
+            int x = (int)nome[i] % 48;
+            numero += x * pow(10,cont);
+            cont++;
+        }
+    }
+    else{
+        for (int i = tamanho - 1; i > 0; i--){
+            int x = (int)nome[i] % 48;
+            numero += x * pow(10,cont);
+            cont++;
+        }
+        numero *= -1;
+    }
+    return numero;
 }
 
 void criar_arquivo(char *nome){
@@ -177,7 +250,7 @@ void criar_coluna(coluna Coluna){
 }
 
 void criar_tabela(){
-	coluna Coluna;
+    coluna Coluna;
     int qtd, x, sid = 0, fim = 0;
     //estrutura para garantir que a tabela a ser criada ainda não exista
     receber_nome_tabela(Coluna.nome_tabela, 0);
@@ -283,6 +356,7 @@ int ler_tabela(char *nome){
             a = (char) teste;
             if(a == '|') cont++;
         }
+        printf("%d\n", cont);
         fclose(arquivo);
         return cont;
     }
@@ -408,13 +482,10 @@ void pesquisar_campo(){
 }
 
 void pesquisar_registro(char *nome, int posicao){
-    char *valor, *comparador, a, b, c, d;
-    FILE *leitura, *mostrar;
-    alocar_arquivo(&leitura, nome, "r");
-    alocar_arquivo(&mostrar, nome, "r");
-    comparador = malloc(TAMANHO);
+    char *valor;
     valor = malloc(TAMANHO);
-    int x = 1, y, z, cont = 0;
+    int x;
+    alocar_arquivo(&arquivo, nome, "r");
     //caso de erro: arquivo não abre
     if(arquivo == NULL){
         printf("Erro na abertura do arquivo %s\n", nome);
@@ -424,7 +495,6 @@ void pesquisar_registro(char *nome, int posicao){
         scanf("%s", valor);
         system("clear");
         while(x != 0){
-            cont = 0;
             printf("----- PESQUISAR VALOR -----\n");
             printf("Escolha a opção para a pesquisa:\n");
             printf("1-Valores maiores que o valor informado\n");
@@ -435,112 +505,40 @@ void pesquisar_registro(char *nome, int posicao){
             printf("6-Valores próximo ao valor informado\n");
             printf("0-Parar pesquisa\n");
             scanf("%d", &x);
-            if(x < 0 || x > 6){
-                system("clear");
-                printf("Opção inválida\n");
-            }
-            else if(x != 0){
-                //system("clear");
-                y = converter_string_em_inteiro(valor);
-                fseek(leitura, 0, SEEK_SET);
-                fseek(mostrar, 0, SEEK_SET);
-                fscanf(leitura, "%s\n", nome);
-                fscanf(leitura, "%c", &b);
-                a = (char)b;
-                while(a != '\n' && !feof(leitura)){
-                    fscanf(leitura, "%c", &b);
-                    a = (char) b;
-                }
-                fscanf(mostrar, "%s\n", nome);
-                fscanf(mostrar, "%c", &d);
-                c = (char)d;
-                while(c != '\n' && !feof(mostrar)){
-                    fscanf(mostrar, "%c", &d);
-                    c = (char) d;
-                }
-                printf("----- Resultado -----\n");
-                while(!feof(mostrar)){
-                    for(int i = 0; i <= posicao; i++){
-                        fscanf(mostrar, "%s |", comparador);
-                        z = converter_string_em_inteiro(comparador);
-                        if(i == posicao){
-                            fscanf(leitura, "%c", &b);
-                            a = (char) b;
-                            if(x == 1){
-                                if(y < z){
-                                    cont++;
-                                    printf("%c", a);
-                                }
-                                while(a != '\n' && !feof(leitura)){
-                                    fscanf(leitura, "%c", &b);
-                                    a = (char) b;
-                                    if(y < z) printf("%c", a);
-                                }
-                            }
-                            else if(x == 2){
-                                if(y <= z){
-                                    cont++;
-                                    printf("%c", a);
-                                }
-                                while(a != '\n' && !feof(leitura)){
-                                    fscanf(leitura, "%c", &b);
-                                    a = (char) b;
-                                    if(y <= z) printf("%c", a);
-                                }
-                            }
-                            else if(x == 3){
-                                if(y == z){
-                                    cont++;
-                                    printf("%c", a);
-                                }
-                                while(a != '\n' && !feof(leitura)){
-                                    fscanf(leitura, "%c", &b);
-                                    a = (char) b;
-                                    if(y == z) printf("%c", a);
-                                }
-                            }
-                            else if(x == 4){
-                                if(y > z){
-                                    cont++;
-                                    printf("%c", a);
-                                }
-                                while(a != '\n' && !feof(leitura)){
-                                    fscanf(leitura, "%c", &b);
-                                    a = (char) b;
-                                    if(y > z) printf("%c", a);
-                                }
-                            }
-                            else if(x == 5){
-                                if(y >= z){
-                                    cont++;
-                                    printf("%c", a);
-                                }
-                                while(a != '\n' && !feof(leitura)){
-                                    fscanf(leitura, "%c", &b);
-                                    a = (char) b;
-                                    if(y >= z) printf("%c", a);
-                                }
-                            }
-                            else if(x == 6){
-                                printf("ainda não foi feito\n");
-                            }
-                            fscanf(mostrar, "%c", &d);
-                            c = (char) d;
-                            while(c != '\n' && !feof(mostrar)){
-                                fscanf(mostrar, "%c", &d);
-                                c = (char) d;
-                            }
-                        }
-                    }
-                }
-                if(cont == 0) printf("Nenhum valor encontrado\n");
-                printf("\n");
+            switch(x){
+                case 1:
+                    system("clear");
+                    break;
+                case 2:
+                    system("clear");
+                    break;
+                case 3:
+                    system("clear");
+                    fseek(arquivo, 0, SEEK_SET);
+                    fscanf(arquivo, "%s\n", nome);
+                    fscanf(arquivo, "\n");
+                    fscanf(arquivo, "%s", valor);
+                    printf("%s\n", valor);
+                    break;
+                case 4:
+                    system("clear");
+                    break;
+                case 5:
+                    system("clear");
+                    break;
+                case 6:
+                    system("clear");
+                    break;
+                case 0:
+                    system("clear");
+                    break;
+                default:
+                    system("clear");
+                    printf("Opção inválida\n");
             }
         }
-        fclose(leitura);
-        fclose(mostrar);
+        fclose(arquivo);
     }
-    free(comparador);
     free(valor);
 }
 

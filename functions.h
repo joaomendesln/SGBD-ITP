@@ -12,8 +12,14 @@ typedef struct {
 	char nome_tabela[100];
 } coluna;
 void alocar_arquivo(FILE** ptr, char *nome, char modo[]);
+void apagar_tabela();
 void chamar_campos(char *nome, int qtd);
+int checar_char(char *nome);
+int checar_float(char *nome);
+int checar_inteiro(char *nome);
+int checar_chamada_campo(char *nome, int tipo);
 int checar_nome_tabela(char *nome);
+int converter_string_em_inteiro(char *nome);
 void criar_arquivo(char *nome);
 void criar_coluna(coluna Coluna);
 void criar_tabela();
