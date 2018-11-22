@@ -5,7 +5,7 @@ int main(void){
     int x, fim=0, inser = 1;
     printf("Bem-vindo/a ao banco de dados\n\n");
     while(fim != 1){
-        printf("----- MENU -----\n1-Criar tabela\n2-Listar todas as tabelas\n3-Inserir registro em uma tabela\n4-Listar dados de uma tabela\n5-Pesquisar valor em uma tabela\n7-Apagar uma tabela\n0-Sair\n");
+        printf("----- MENU -----\n1-Criar tabela\n2-Listar todas as tabelas\n3-Inserir registro em uma tabela\n4-Listar dados de uma tabela\n5-Pesquisar valor em uma tabela\n6-Apagar um registro de uma tabela\n7-Apagar uma tabela\n0-Sair\n");
         scanf("%d", &x);
         getchar();
         switch(x){
@@ -22,25 +22,7 @@ int main(void){
                 listar();
                 break;
             case 3:
-                inser = 1;
-                while(inser != 0){
-                    system("clear");
-                    printf("----- INSERIR REGISTRO -----\n");
-                    listar();
-                    printf("\n");
-                    inserir_linha();
-                    system("clear");
-                    printf("Registro inserido com sucesso!\n");
-                    while(fim != 1){
-                        printf("Deseja inserir outro?\n1-Sim 0-Não\n");
-                        scanf("%d", &inser);
-                        if(inser < 0 || inser > 1){
-                            printf("Insira um valor válido\n");
-                        }
-                        else fim = 1;
-                    }
-                    fim = 0;
-                }
+                inserir_linha();
                 break;
             case 4:
                 system("clear");
@@ -55,6 +37,13 @@ int main(void){
                 listar();
                 printf("\n");
                 pesquisar_campo();
+                break;
+            case 6:
+                system("clear");
+                printf("----- APAGAR REGISTRO -----\n");
+                listar();
+                printf("\n");
+                apagar_registro();
                 break;
             case 7:
                 system("clear");

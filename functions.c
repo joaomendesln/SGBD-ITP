@@ -3,6 +3,97 @@
 #define TAMANHO 100
 FILE* arquivo;
 
+void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
+    char *provisorio;
+    provisorio = malloc(TAMANHO);
+    strcpy(provisorio, "./tabelas/");
+    strcat(provisorio, nome);
+    //criação de arquivo com o nome do parâmetro + ".txt"
+    *ptr = fopen(strcat(provisorio, ".txt"), modo);
+    free(provisorio);
+}
+
+void apagar_registro(){
+    int status, fim = 0, validarCampo = 0, qtdColunas = 0, qtdLinhas = 0, escreverLinha = 1, quebrarLinha = 0, tipo = 0, cont = 0;
+    char *nome, *valor, *registro, *campo, c, a;
+    nome = malloc(TAMANHO);
+    valor = malloc(TAMANHO);
+    campo = malloc(TAMANHO);
+    receber_nome_tabela(nome, 1);
+    coluna Coluna;
+    FILE *escritaProvisoria = fopen("provisorios/tabela_provisoria.txt", "w+");
+    FILE *leituraProvisoria = fopen("provisorios/tabela_provisoria.txt", "r");
+    FILE *leitura;
+    alocar_arquivo(&leitura, nome, "r");
+    while (fscanf(leitura, "%c", &c) != EOF) {
+        a = (char) c;
+        if(a == '\n') {
+            qtdLinhas++;
+        }
+    }
+    fseek(leitura, 0, SEEK_SET);
+    if (escritaProvisoria == NULL || leituraProvisoria == NULL || leitura == NULL) printf("Erro na abertura de arquivo");
+    else{
+        fscanf(leitura, "%s\n", nome);
+        fprintf(escritaProvisoria, "%s\n", nome);
+        qtdColunas = ler_tabela(nome);
+        for (int i = 0; i < qtdColunas; i++){
+            fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            fprintf(escritaProvisoria, "%d %d %d %s | ", Coluna.tipo, Coluna.ai, Coluna.not_null, Coluna.nome_coluna);
+            if (i == 0) {
+                tipo = Coluna.tipo;
+            }
+        }
+
+        while(fim!=1){
+            printf("Insira a chave primaria do registro que deseja apagar:\n");
+            while (validarCampo != 1){
+                scanf("%s", valor);
+                //cancela(valor);
+                validarCampo = checar_chamada_campo(valor, tipo);
+                if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
+            }
+            validarCampo = 0;
+            fim = verificar_chave(nome, valor);
+            if(fim == 0) printf("Esse valor não existe\n");
+        }
+        fprintf(escritaProvisoria, "\n");
+        while (!feof(leitura)){
+            for (int i = 0; i < qtdColunas; i++){
+                fscanf(leitura, "%s | ", campo);
+                if(i == 0 && strcmp(valor, campo) == 0) {
+                    escreverLinha = 0;
+                    continue;
+                }
+                else{
+                    if (escreverLinha == 1){
+                        fprintf(escritaProvisoria, "%s | ", campo);
+                        quebrarLinha = 1;
+                    }
+                }
+            }
+            cont++;
+            printf("%d %d\n", cont, qtdLinhas);
+            if (quebrarLinha == 1 && cont != qtdLinhas-1) fprintf(escritaProvisoria, "\n");
+            escreverLinha = 1;
+            quebrarLinha = 0;
+            fscanf(leitura, "\n");
+        }
+        fclose(escritaProvisoria);
+        FILE *sobrescreverTabela;
+        alocar_arquivo(&sobrescreverTabela, nome, "w+");
+
+        while(fscanf(leituraProvisoria, "%c", &c) != EOF){
+            fprintf(sobrescreverTabela, "%c", c);
+        }
+        fclose(leituraProvisoria);
+        fclose(sobrescreverTabela);
+    }
+    free(campo);
+    free(nome);
+    free(valor);
+}
+
 void apagar_tabela(){
     int status;
     char *nome, *nomeArquivo;
@@ -37,8 +128,6 @@ void apagar_tabela(){
         system("clear");
         if (status == 0) printf("Tabela apagada com sucesso!\n");
 
-        //fseek(listaProvisoria, 0, SEEK_SET);
-
         while(fscanf(leituraProvisoria, "%s\n", nomeTabela) != EOF){
             fprintf(sobrescreverTabelas, "%s\n", nomeTabela);
         }
@@ -46,69 +135,79 @@ void apagar_tabela(){
         fclose(sobrescreverTabelas);
     }
     free(nome);
+    free(nomeArquivo);
     free(nomeTabela);
-}
-
-void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
-    char *provisorio;
-    provisorio = malloc(TAMANHO);
-    strcpy(provisorio, "./tabelas/");
-    strcat(provisorio, nome);
-    //criação de arquivo com o nome do parâmetro + ".txt"
-    *ptr = fopen(strcat(provisorio, ".txt"), modo);
-    free(provisorio);
 }
 
 void chamar_campos(char *nome, int qtd){
     coluna Coluna;
     char *valor;
     valor = malloc(TAMANHO);
-    int cont = 0, fim = 1, validarCampo = 0;
-    //criação de ponteiros para escrita e leitura com o nome do parâmetro + ".txt"
-    FILE *leitura, *escrita;
-    alocar_arquivo(&leitura, nome, "r");
-    alocar_arquivo(&escrita, nome, "a");
-    //pulando a primeira linha (há apenas o nome da tabela)
-    fscanf(leitura, "%s\n", nome);
-    //inserindo uma quebra de linha para inserir as próximas informações
-    fprintf(escrita, "\n");
-    for(int i = 0; i < qtd; i++){
-        fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
-        if(strcmp(Coluna.nome_coluna, "id") != 0 && i != 0){
-            printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
-            while (validarCampo != 1){
-                scanf("%s", valor);
-                validarCampo = checar_chamada_campo(valor, Coluna.tipo);
-                if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
-            }
-            validarCampo = 0;
-            fprintf(escrita, "%s | ", valor);
-        }
-        else{
-            if(Coluna.ai == 1){
-                cont = ultimo_id_tabela(nome);
-                fprintf(escrita, "%d | ", cont + 1);
-            }
-            else{
-                while(fim!=0){
-                    printf("Insira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
-                    while (validarCampo != 1){
-                        scanf("%s", valor);
-                        cancela(valor);
-                        validarCampo = checar_chamada_campo(valor, Coluna.tipo);
-                        if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
-                    }
-                    validarCampo = 0;
-                    fim = verificar_chave(nome, valor);
-                    if(fim == 1) printf("Esse valor já foi inserido\n");
+    int cont = 0, fim = 1, validarCampo = 0, loop = 1, inser = 1;
+    while(loop != 0){
+        //criação de ponteiros para escrita e leitura com o nome do parâmetro + ".txt"
+        FILE *leitura, *escrita;
+        alocar_arquivo(&leitura, nome, "r");
+        alocar_arquivo(&escrita, nome, "a");
+        fseek(leitura, 0, SEEK_SET);
+        fseek(escrita, 0, SEEK_SET);
+        //pulando a primeira linha (há apenas o nome da tabela)
+        fscanf(leitura, "%s\n", nome);
+        //inserindo uma quebra de linha para inserir as próximas informações
+        fprintf(escrita, "\n");
+        for(int i = 0; i < qtd; i++){
+            fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            if(strcmp(Coluna.nome_coluna, "id") != 0 && i != 0){
+                printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
+                while (validarCampo != 1){
+                    scanf("%s", valor);
+                    validarCampo = checar_chamada_campo(valor, Coluna.tipo);
+                    if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
                 }
+                validarCampo = 0;
                 fprintf(escrita, "%s | ", valor);
             }
+            else{
+                if(Coluna.ai == 1){
+                    cont = ultimo_id_tabela(nome);
+                    fprintf(escrita, "%d | ", cont + 1);
+                }
+                else{
+                    while(fim!=0){
+                        printf("Insira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
+                        while (validarCampo != 1){
+                            scanf("%s", valor);
+                            //cancela(valor);
+                            validarCampo = checar_chamada_campo(valor, Coluna.tipo);
+                            if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
+                        }
+                        validarCampo = 0;
+                        fim = verificar_chave(nome, valor);
+                        if(fim == 1) printf("Esse valor já foi inserido\n");
+                    }
+                    fim = 1;
+                    fprintf(escrita, "%s | ", valor);
+                }
+            }
         }
+        fclose(leitura);
+        fclose(escrita);
+        system("clear");
+        printf("----- INSERIR REGISTRO -----\n");
+        printf("Registro inserido com sucesso!\n");
+        while(inser != 0){
+            printf("Deseja inserir outro registro na tabela %s?\n1-Sim 0-Não\n", nome);
+            scanf("%d", &loop);
+            if(loop < 0 || loop > 1){
+                printf("Insira um valor válido");
+            }
+            else{
+                inser = 0;
+            }
+        }
+        inser = 1;
     }
-    free(valor);
-    fclose(leitura);
-    fclose(escrita);
+    free(valor);  
 }
 
 int checar_char(char *nome){
@@ -160,24 +259,16 @@ int checar_inteiro(char *nome){
 
 int checar_chamada_campo(char *nome, int tipo){
     if (tipo == 1){
-        int c = checar_char(nome);
-        if (c == 0) return 0;
-        return 1;
+        return checar_char(nome);
     }
     if (tipo == 2){
-        int i = checar_inteiro(nome);
-        if (i == 0) return 0;
-        return 1;
+        return checar_inteiro(nome);
     }
     if (tipo == 3){
-        int f = checar_float(nome);
-        if (f == 0) return 0;
-        return 1;
+        return checar_float(nome);
     }
     if (tipo == 4){
-        int d = checar_float(nome);
-        if (d == 0) return 0;
-        return 1;
+        return checar_float(nome);
     }
     return 1;
 }
@@ -206,6 +297,17 @@ int checar_nome_tabela(char *nome){
     fclose(arquivo);
     //retorno 1 caso não haja uma tabela com o nome escolhido
     return 1;
+}
+
+int compara_string_proxima(char *a, char *b){
+    int cont = 0, prox = 0;
+    while(a[cont] != '\0' && b[cont] != '\0'){
+        if(a[cont] == b[cont] || a[cont]+1 == b[cont] || a[cont]+2 == b[cont] || a[cont]-1 == b[cont] || a[cont]-2 == b[cont]){
+            prox++;
+        }
+        cont++;
+    }
+    return cont/prox;
 }
 
 int converter_string_em_inteiro(char *nome){
@@ -257,7 +359,6 @@ void criar_coluna(coluna Coluna){
 
 void criar_tabela(){
 	coluna *Colunas;
-    //char **campos;
     char *nome = malloc(100);
     int qtd, x, sid = 0, fim = 0;
     //estrutura para garantir que a tabela a ser criada ainda não exista
@@ -269,11 +370,7 @@ void criar_tabela(){
         else printf("Insira um valor maior que zero\n");
     }
     fim = 0;
-    //campos = (char **) malloc(qtd*sizeof(char *));
     Colunas = (coluna *) malloc(qtd*sizeof(coluna));
-    /*for(int i = 0; i < qtd; i++){
-        campos[i] = (char *) malloc(TAMANHO);
-    }*/
     for(int i = 0; i < qtd; i++){
         strcpy(Colunas[i].nome_tabela, nome);
     }
@@ -289,8 +386,6 @@ void criar_tabela(){
                 Colunas[0].ai = 1;
                 Colunas[0].not_null = 1;
                 Colunas[0].tipo = 2;
-                //criar_coluna(Coluna);
-                //strcpy(campos[0], "id");
             }
             //chave primária personalizada é criada
             else{
@@ -305,8 +400,6 @@ void criar_tabela(){
                 }
                 Colunas[0].not_null = 1;
                 Colunas[0].tipo = 2;
-                //criar_coluna(Coluna);
-                //strcpy(campos[0], Coluna.nome_coluna);
             }
         }
         else printf("Insira um valor válido\n");
@@ -315,7 +408,6 @@ void criar_tabela(){
     for(int i = 1; i < qtd; i++){
         Colunas[i].ai = 0;
     } 
-    //Coluna.ai = 0;
     //criação dos Colunas da tabela
     printf("Insira o tipo e o nome de cada coluna\n1-char  2-int  3-float  4-double  5-string\nEx:'1 nome_Coluna'\n");
     for(int i = 2; i <= qtd; i++){
@@ -325,13 +417,10 @@ void criar_tabela(){
             if(Colunas[i-1].tipo >= 1 && Colunas[i-1].tipo <= 5) {
                 fim = 1;
                 for(int j = 0; j < i-1; j++){
-                    if(strcmp(Colunas[j].nome_tabela, Colunas[i-1].nome_coluna) == 0){
+                    if(strcmp(Colunas[j].nome_coluna, Colunas[i-1].nome_coluna) == 0){
                         printf("Já existe um campo com esse nome\n");
                         fim = 0;
                     }
-                }
-                if(fim == 1){
-                    strcpy(campos[i-1], Coluna.nome_coluna);
                 }
             }
             else printf("Insira um tipo válido\n");
@@ -344,20 +433,20 @@ void criar_tabela(){
             else printf("Insira um valor válido\n");
         }
         fim = 0;
-        criar_coluna(Coluna);
     }
-    criar_arquivo(Coluna.nome_tabela);
-    inserir_nome(Coluna.nome_tabela);
+    criar_arquivo(Colunas[0].nome_tabela);
+    inserir_nome(Colunas[0].nome_tabela);
     for(int i = 0; i < qtd; i++){
         criar_coluna(Colunas[i]);
     }
-    /*for(int i = 0; i < qtd; i++){
-        free(campos[i]);
-    }*/
-    //free(campos);
+    free(Colunas);
 }
 
 void inserir_linha(){
+    system("clear");
+    printf("----- INSERIR REGISTRO -----\n");
+    listar();
+    printf("\n");
     char *nome;
     nome = malloc(TAMANHO);
     int colunas;
@@ -466,167 +555,77 @@ void pesquisar_campo(){
     char *nome, *campo, a, c;
     nome = malloc(TAMANHO);
     campo = malloc(TAMANHO);
-    int fim = 1, cont = 0, posicao, conteudo = 0;
+    int fim = 1, cont = 0, loop = 1, inser = 1, posicao, conteudo = 0, tipo;
     receber_nome_tabela(nome, 1);
     printf("\n");
-    alocar_arquivo(&arquivo, nome, "r");
-    //caso de erro: arquivo não abre
-    if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
-    }
-    else{
-        fscanf(arquivo, "%s\n", nome);
-        while (a != '\n' && !feof(arquivo)){
-            fscanf(arquivo, "%c", &c);
-            a = (char) c;
-            if(a == '|') cont++;
-            if(feof(arquivo)){
-                printf("Não há conteudo na tabela escolhida");
-                conteudo = 1;
-            } 
+    while(loop != 0){
+        alocar_arquivo(&arquivo, nome, "r");
+        //caso de erro: arquivo não abre
+        if(arquivo == NULL){
+            printf("Erro na abertura do arquivo %s\n", nome);
         }
-        if(conteudo == 0){
-            coluna *Colunas = NULL;
-            Colunas = malloc(cont*sizeof(coluna));
-            fseek(arquivo, 0, SEEK_SET);
+        else{
             fscanf(arquivo, "%s\n", nome);
-            for(int i = 0; i < cont; i++){
-                fscanf(arquivo, "%d %d %d %s | ", &Colunas[i].tipo, &Colunas[i].ai, &Colunas[i].not_null, Colunas[i].nome_coluna);
+            while (a != '\n' && !feof(arquivo)){
+                fscanf(arquivo, "%c", &c);
+                a = (char) c;
+                if(a == '|') cont++;
+                if(feof(arquivo)){
+                    printf("Não há conteudo na tabela escolhida");
+                    conteudo = 1;
+                } 
             }
-            printf("Colunas disponiveis:\n");
-            for(int i = 0; i < cont; i++){
-                printf("%s  ", Colunas[i].nome_coluna);
-                if(i % 3 == 0 && i != 0 && i != (cont-1)) printf("\n");
-            }
-            fim = 1;
-            printf("\n");
-            while(fim!=0){
-                printf("Insira o campo em que deseja pesquisar\n");
-                scanf("%s", campo);
+            if(conteudo == 0){
+                system("clear");
+                printf("----- PESQUISAR VALOR -----\n");
+                coluna *Colunas = NULL;
+                Colunas = malloc(cont*sizeof(coluna));
+                fseek(arquivo, 0, SEEK_SET);
+                fscanf(arquivo, "%s\n", nome);
                 for(int i = 0; i < cont; i++){
-                    if(strcmp(campo, Colunas[i].nome_coluna) == 0){
-                        fim = 0;
-                        posicao = i;
-                    }
+                    fscanf(arquivo, "%d %d %d %s | ", &Colunas[i].tipo, &Colunas[i].ai, &Colunas[i].not_null, Colunas[i].nome_coluna);
                 }
-                if(fim == 1) printf("Esse campo não existe\n");
+                printf("Colunas disponiveis:\n");
+                for(int i = 0; i < cont; i++){
+                    printf("%s  ", Colunas[i].nome_coluna);
+                    if(i % 3 == 0 && i != 0 && i != (cont-1)) printf("\n");
+                }
+                fim = 1;
+                printf("\n");
+                while(fim!=0){
+                    printf("Insira o campo em que deseja pesquisar\n");
+                    scanf("%s", campo);
+                    for(int i = 0; i < cont; i++){
+                        if(strcmp(campo, Colunas[i].nome_coluna) == 0){
+                            fim = 0;
+                            posicao = i;
+                            tipo = Colunas[i].tipo;
+                        }
+                    }
+                    if(fim == 1) printf("Esse campo não existe\n");
+                }
+                free(Colunas);
             }
-            free(Colunas);
+            fclose(arquivo);
+            pesquisar_registro(nome, posicao, tipo);
         }
-        fclose(arquivo);
-        pesquisar_registro(nome, posicao);
+        while(inser != 0){
+            printf("\nDeseja realizar outra busca na tabela %s?\n1-Sim 0-Não\n", nome);
+            scanf("%d", &loop);
+            if(loop < 0 || loop > 1){
+                printf("Insira um valor válido");
+            }
+            else{
+                inser = 0;
+            }
+        }
+        inser = 1;
     }
     free(campo);
     free(nome);
 }
 
-void realizar_busca(char *nome, char *valor, int posicao, int x){
-    int y, z, cont = 0;
-    char *comparador, a, b, c, d;
-    FILE *leitura, *mostrar;
-    alocar_arquivo(&leitura, nome, "r");
-    alocar_arquivo(&mostrar, nome, "r");
-    comparador = malloc(TAMANHO);
-    y = converter_string_em_inteiro(valor);
-    fseek(leitura, 0, SEEK_SET);
-    fseek(mostrar, 0, SEEK_SET);
-    fscanf(leitura, "%s\n", nome);
-    fscanf(leitura, "%c", &b);
-    a = (char)b;
-    while(a != '\n' && !feof(leitura)){
-        fscanf(leitura, "%c", &b);
-        a = (char) b;
-    }
-    fscanf(mostrar, "%s\n", nome);
-    fscanf(mostrar, "%c", &d);
-    c = (char)d;
-    while(c != '\n' && !feof(mostrar)){
-        fscanf(mostrar, "%c", &d);
-        c = (char) d;
-    }
-    printf("----- Resultado -----\n");
-    while(!feof(mostrar)){
-        for(int i = 0; i <= posicao; i++){
-            fscanf(mostrar, "%s |", comparador);
-            z = converter_string_em_inteiro(comparador);
-            if(i == posicao){
-                fscanf(leitura, "%c", &b);
-                a = (char) b;
-                if(x == 1){
-                    if(y < z){
-                        cont++;
-                        printf("%c", a);
-                    }
-                    while(a != '\n' && !feof(leitura)){
-                        fscanf(leitura, "%c", &b);
-                        a = (char) b;
-                        if(y < z) printf("%c", a);
-                    }
-                }
-                else if(x == 2){
-                    if(y <= z){
-                        cont++;
-                        printf("%c", a);
-                    }
-                    while(a != '\n' && !feof(leitura)){
-                        fscanf(leitura, "%c", &b);
-                        a = (char) b;
-                        if(y <= z) printf("%c", a);
-                    }
-                }
-                else if(x == 3){
-                    if(y == z){
-                        cont++;
-                        printf("%c", a);
-                    }
-                    while(a != '\n' && !feof(leitura)){
-                        fscanf(leitura, "%c", &b);
-                        a = (char) b;
-                        if(y == z) printf("%c", a);
-                    }
-                }
-                else if(x == 4){
-                    if(y > z){
-                        cont++;
-                        printf("%c", a);
-                    }
-                    while(a != '\n' && !feof(leitura)){
-                        fscanf(leitura, "%c", &b);
-                        a = (char) b;
-                        if(y > z) printf("%c", a);
-                    }
-                }
-                else if(x == 5){
-                    if(y >= z){
-                        cont++;
-                        printf("%c", a);
-                    }
-                    while(a != '\n' && !feof(leitura)){
-                        fscanf(leitura, "%c", &b);
-                        a = (char) b;
-                        if(y >= z) printf("%c", a);
-                    }
-                }
-                else if(x == 6){
-                    printf("ainda não foi feito\n");
-                }
-                fscanf(mostrar, "%c", &d);
-                c = (char) d;
-                while(c != '\n' && !feof(mostrar)){
-                    fscanf(mostrar, "%c", &d);
-                    c = (char) d;
-                }
-            }
-        }
-    }
-    if(cont == 0) printf("Nenhum valor encontrado\n");
-    printf("\n");
-    fclose(leitura);
-    fclose(mostrar);
-    free(comparador);
-}
-
-void pesquisar_registro(char *nome, int posicao){
+void pesquisar_registro(char *nome, int posicao, int tipo){
     char *valor;
     valor = malloc(TAMANHO);
     int x = 1;
@@ -655,11 +654,177 @@ void pesquisar_registro(char *nome, int posicao){
             }
             else if(x != 0){
                 system("clear");
-                realizar_busca(nome, valor, posicao, x);
+                realizar_busca(nome, valor, posicao, tipo, x);
             }
         }
     }
     free(valor);
+}
+
+void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x){
+    int y, z, cont = 0;
+    double numero;
+    char *comparador, a, b, c, d;
+    FILE *leitura, *mostrar;
+    alocar_arquivo(&leitura, nome, "r");
+    alocar_arquivo(&mostrar, nome, "r");
+    comparador = malloc(TAMANHO);
+    y = converter_string_em_inteiro(valor);
+    //pula as duas primeiras linhas do ponteiro leitura
+    fscanf(leitura, "%s\n", nome);
+    fscanf(leitura, "%c", &b);
+    a = (char)b;
+    while(a != '\n' && !feof(leitura)){
+        fscanf(leitura, "%c", &b);
+        a = (char) b;
+    }
+    //pula as duas primeiras linhas do ponteiro mostrar
+    fscanf(mostrar, "%s\n", nome);
+    fscanf(mostrar, "%c", &d);
+    c = (char)d;
+    while(c != '\n' && !feof(mostrar)){
+        fscanf(mostrar, "%c", &d);
+        c = (char) d;
+    }
+    printf("----- Resultado -----\n");
+    while(!feof(leitura)){
+        for(int i = 0; i <= posicao; i++){
+            if((tipo == 2 || tipo == 3 || tipo == 4) && i == posicao) fscanf(leitura, "%lf |", &numero);
+            else fscanf(leitura, "%s |", comparador);
+            if(i == posicao){
+                fscanf(mostrar, "%c", &b);
+                a = (char) b;
+                if(x == 1){
+                    if((tipo == 2 || tipo == 3 || tipo == 4) && numero > y){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 1 && comparador[0] > valor[0]){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 5 && strcmp(comparador, valor) > 0){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    while(a != '\n' && !feof(mostrar)){
+                        fscanf(mostrar, "%c", &b);
+                        a = (char) b;
+                        if((tipo == 2 || tipo == 3 || tipo == 4) && numero > y) printf("%c", a);
+                        else if(tipo == 1 && comparador[0] > valor[0]) printf("%c", a);
+                        else if(tipo == 5 && strcmp(comparador, valor) > 0) printf("%c", a);
+                    }
+                }
+
+                else if(x == 2){
+                    if((tipo == 2 || tipo == 3 || tipo == 4) && numero >= y){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 1 && comparador[0] >= valor[0]){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 5 && strcmp(comparador, valor) >= 0){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    while(a != '\n' && !feof(mostrar)){
+                        fscanf(mostrar, "%c", &b);
+                        a = (char) b;
+                        if((tipo == 2 || tipo == 3 || tipo == 4) && numero >= y) printf("%c", a);
+                        else if(tipo == 1 && comparador[0] >= valor[0]) printf("%c", a);
+                        else if(tipo == 5 && strcmp(comparador, valor) >= 0) printf("%c", a);
+                    }
+                }
+                else if(x == 3){
+                    if((tipo == 2 || tipo == 3 || tipo == 4) && numero == y){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 1 && comparador[0] == valor[0]){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 5 && strcmp(comparador, valor) == 0){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    while(a != '\n' && !feof(mostrar)){
+                        fscanf(mostrar, "%c", &b);
+                        a = (char) b;
+                        if((tipo == 2 || tipo == 3 || tipo == 4) && numero == y) printf("%c", a);
+                        else if(tipo == 1 && comparador[0] == valor[0]) printf("%c", a);
+                        else if(tipo == 5 && strcmp(comparador, valor) == 0) printf("%c", a);
+                    }
+                }
+                else if(x == 4){
+                    if((tipo == 2 || tipo == 3 || tipo == 4) && numero < y){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 1 && comparador[0] < valor[0]){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 5 && strcmp(comparador, valor) < 0){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    while(a != '\n' && !feof(mostrar)){
+                        fscanf(mostrar, "%c", &b);
+                        a = (char) b;
+                        if((tipo == 2 || tipo == 3 || tipo == 4) && numero < y) printf("%c", a);
+                        else if(tipo == 1 && comparador[0] < valor[0]) printf("%c", a);
+                        else if(tipo == 5 && strcmp(comparador, valor) < 0) printf("%c", a);
+                    }
+                }
+                else if(x == 5){
+                    if((tipo == 2 || tipo == 3 || tipo == 4) && y >= numero){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 1 && comparador[0] <= valor[0]){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    else if(tipo == 5 && strcmp(comparador, valor) <= 0){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    while(a != '\n' && !feof(mostrar)){
+                        fscanf(mostrar, "%c", &b);
+                        a = (char) b;
+                        if((tipo == 2 || tipo == 3 || tipo == 4) && numero <= y) printf("%c", a);
+                        else if(tipo == 1 && comparador[0] <= valor[0]) printf("%c", a);
+                        else if(tipo == 5 && strcmp(comparador, valor) <= 0) printf("%c", a);
+                    }
+                }
+                else if(x == 6 && tipo == 5){
+                    if(compara_string_proxima(valor, comparador) < 2 && strcmp(comparador, "") != 0){
+                        cont++;
+                        printf("%c", a);
+                    }
+                    while(a != '\n' && !feof(mostrar)){
+                        fscanf(mostrar, "%c", &b);
+                        a = (char) b;
+                        if(compara_string_proxima(valor, comparador) < 2 && strcmp(comparador, "") != 0) printf("%c", a);
+                    }
+                }
+                fscanf(leitura, "%c", &d);
+                c = (char) d;
+                while(c != '\n' && !feof(leitura)){
+                    fscanf(leitura, "%c", &d);
+                    c = (char) d;
+                }
+            }
+        }
+    }
+    if(cont == 0) printf("Nenhum valor encontrado\n");
+    printf("\n");
+    fclose(leitura);
+    fclose(mostrar);
+    free(comparador);
 }
 
 void receber_nome_tabela(char *nome, int i){
