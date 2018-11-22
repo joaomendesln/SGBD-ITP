@@ -3,7 +3,7 @@
 #define TAMANHO 100
 FILE* arquivo;
 
-/*void apagar_tabela(){
+i/*void apagar_tabela(){
     int status;
     char *nome;
     nome = malloc(TAMANHO);
@@ -176,6 +176,49 @@ int checar_chamada_campo(char *nome, int tipo){
     return 1;
 }
 
+void chamar_campos(char *nome, int qtd){
+    coluna Coluna;
+    char *valor;
+    valor = malloc(TAMANHO);
+    long long int x;
+    int cont = 0, fim = 1;
+    //criação de ponteiros para escrita e leitura com o nome do parâmetro + ".txt"
+    FILE *leitura, *escrita;
+    alocar_arquivo(&leitura, nome, "r");
+    alocar_arquivo(&escrita, nome, "a");
+    //pulando a primeira linha (há apenas o nome da tabela)
+    fscanf(leitura, "%s\n", nome);
+    //inserindo uma quebra de linha para inserir as próximas informações
+    fprintf(escrita, "\n");
+    for(int i = 0; i < qtd; i++){
+        fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+        if(strcmp(Coluna.nome_coluna, "id") != 0 && i != 0){
+            printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
+            scanf("%s", valor);
+            fprintf(escrita, "%s | ", valor);
+        }
+        else{
+            if(Coluna.ai == 1){
+                cont = ultimo_id_tabela(nome);
+                fprintf(escrita, "%d | ", cont + 1);
+            }
+            else{
+                while(fim!=0){
+                    printf("Insira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
+                    scanf("%lli", &x);
+                    sprintf(valor, "%lli", x);
+                    fim = verificar_chave(nome, valor);
+                    if(fim == 1) printf("Esse valor já foi inserido\n");
+                }
+                fprintf(escrita, "%s | ", valor);
+            }
+        }
+    }
+    free(valor);
+    fclose(leitura);
+    fclose(escrita);
+}
+
 int checar_nome_tabela(char *nome){
     char *tabela;
     tabela = malloc(TAMANHO);
@@ -250,7 +293,7 @@ void criar_coluna(coluna Coluna){
 }
 
 void criar_tabela(){
-    coluna Coluna;
+	coluna Coluna;
     int qtd, x, sid = 0, fim = 0;
     //estrutura para garantir que a tabela a ser criada ainda não exista
     receber_nome_tabela(Coluna.nome_tabela, 0);
@@ -356,7 +399,6 @@ int ler_tabela(char *nome){
             a = (char) teste;
             if(a == '|') cont++;
         }
-        printf("%d\n", cont);
         fclose(arquivo);
         return cont;
     }
@@ -482,10 +524,13 @@ void pesquisar_campo(){
 }
 
 void pesquisar_registro(char *nome, int posicao){
-    char *valor;
+    char *valor, *comparador, a, b, c, d;
+    FILE *leitura, *mostrar;
+    alocar_arquivo(&leitura, nome, "r");
+    alocar_arquivo(&mostrar, nome, "r");
+    comparador = malloc(TAMANHO);
     valor = malloc(TAMANHO);
-    int x;
-    alocar_arquivo(&arquivo, nome, "r");
+    int x = 1, y, z, cont = 0;
     //caso de erro: arquivo não abre
     if(arquivo == NULL){
         printf("Erro na abertura do arquivo %s\n", nome);
@@ -495,6 +540,7 @@ void pesquisar_registro(char *nome, int posicao){
         scanf("%s", valor);
         system("clear");
         while(x != 0){
+            cont = 0;
             printf("----- PESQUISAR VALOR -----\n");
             printf("Escolha a opção para a pesquisa:\n");
             printf("1-Valores maiores que o valor informado\n");
@@ -505,40 +551,112 @@ void pesquisar_registro(char *nome, int posicao){
             printf("6-Valores próximo ao valor informado\n");
             printf("0-Parar pesquisa\n");
             scanf("%d", &x);
-            switch(x){
-                case 1:
-                    system("clear");
-                    break;
-                case 2:
-                    system("clear");
-                    break;
-                case 3:
-                    system("clear");
-                    fseek(arquivo, 0, SEEK_SET);
-                    fscanf(arquivo, "%s\n", nome);
-                    fscanf(arquivo, "\n");
-                    fscanf(arquivo, "%s", valor);
-                    printf("%s\n", valor);
-                    break;
-                case 4:
-                    system("clear");
-                    break;
-                case 5:
-                    system("clear");
-                    break;
-                case 6:
-                    system("clear");
-                    break;
-                case 0:
-                    system("clear");
-                    break;
-                default:
-                    system("clear");
-                    printf("Opção inválida\n");
+            if(x < 0 || x > 6){
+                system("clear");
+                printf("Opção inválida\n");
+            }
+            else if(x != 0){
+                //system("clear");
+                y = converter_string_em_inteiro(valor);
+                fseek(leitura, 0, SEEK_SET);
+                fseek(mostrar, 0, SEEK_SET);
+                fscanf(leitura, "%s\n", nome);
+                fscanf(leitura, "%c", &b);
+                a = (char)b;
+                while(a != '\n' && !feof(leitura)){
+                    fscanf(leitura, "%c", &b);
+                    a = (char) b;
+                }
+                fscanf(mostrar, "%s\n", nome);
+                fscanf(mostrar, "%c", &d);
+                c = (char)d;
+                while(c != '\n' && !feof(mostrar)){
+                    fscanf(mostrar, "%c", &d);
+                    c = (char) d;
+                }
+                printf("----- Resultado -----\n");
+                while(!feof(mostrar)){
+                    for(int i = 0; i <= posicao; i++){
+                        fscanf(mostrar, "%s |", comparador);
+                        z = converter_string_em_inteiro(comparador);
+                        if(i == posicao){
+                            fscanf(leitura, "%c", &b);
+                            a = (char) b;
+                            if(x == 1){
+                                if(y < z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y < z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 2){
+                                if(y <= z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y <= z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 3){
+                                if(y == z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y == z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 4){
+                                if(y > z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y > z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 5){
+                                if(y >= z){
+                                    cont++;
+                                    printf("%c", a);
+                                }
+                                while(a != '\n' && !feof(leitura)){
+                                    fscanf(leitura, "%c", &b);
+                                    a = (char) b;
+                                    if(y >= z) printf("%c", a);
+                                }
+                            }
+                            else if(x == 6){
+                                printf("ainda não foi feito\n");
+                            }
+                            fscanf(mostrar, "%c", &d);
+                            c = (char) d;
+                            while(c != '\n' && !feof(mostrar)){
+                                fscanf(mostrar, "%c", &d);
+                                c = (char) d;
+                            }
+                        }
+                    }
+                }
+                if(cont == 0) printf("Nenhum valor encontrado\n");
+                printf("\n");
             }
         }
-        fclose(arquivo);
+        fclose(leitura);
+        fclose(mostrar);
     }
+    free(comparador);
     free(valor);
 }
 
