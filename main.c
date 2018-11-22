@@ -26,6 +26,8 @@ int main(void){
                 while(inser != 0){
                     system("clear");
                     printf("----- INSERIR REGISTRO -----\n");
+                    listar();
+                    printf("\n");
                     inserir_linha();
                     system("clear");
                     printf("Registro inserido com sucesso!\n");
@@ -43,17 +45,23 @@ int main(void){
             case 4:
                 system("clear");
                 printf("----- LISTAR CONTEUDO -----\n");
+                listar();
+                printf("\n");
                 listar_conteudo();
                 break;
             case 5:
                 system("clear");
                 printf("----- PESQUISAR VALOR -----\n");
+                listar();
+                printf("\n");
                 pesquisar_campo();
                 break;
             case 7:
                 system("clear");
-                printf("----- DIGITE O NOME DA TABELA -----\n");
-                //apagar_tabela();
+                printf("----- APAGAR TABELA -----\n");
+                listar();
+                printf("\n");
+                apagar_tabela();
                 break;
             case 0:
                 system("clear");
