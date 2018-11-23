@@ -73,7 +73,6 @@ void apagar_registro(){
                 }
             }
             cont++;
-            printf("%d %d\n", cont, qtdLinhas);
             if (quebrarLinha == 1 && cont != qtdLinhas-1) fprintf(escritaProvisoria, "\n");
             escreverLinha = 1;
             quebrarLinha = 0;
@@ -125,7 +124,7 @@ void apagar_tabela(){
         strcat(nomeArquivo, nome);
         strcat(nomeArquivo, ".txt");
         status = remove(nomeArquivo);
-        system("clear");
+        limpar();
         if (status == 0) printf("Tabela apagada com sucesso!\n");
 
         while(fscanf(leituraProvisoria, "%s\n", nomeTabela) != EOF){
@@ -192,7 +191,7 @@ void chamar_campos(char *nome, int qtd){
         }
         fclose(leitura);
         fclose(escrita);
-        system("clear");
+        limpar();
         printf("----- INSERIR REGISTRO -----\n");
         printf("Registro inserido com sucesso!\n");
         while(inser != 0){
@@ -443,7 +442,7 @@ void criar_tabela(){
 }
 
 void inserir_linha(){
-    system("clear");
+    limpar();
     printf("----- INSERIR REGISTRO -----\n");
     listar();
     printf("\n");
@@ -488,6 +487,26 @@ int ler_tabela(char *nome){
         fclose(arquivo);
         return cont;
     }
+}
+
+void limpar(){
+    #ifdef LINUX
+        system("clear");
+    #elif uns
+        system("clear");
+    #elif Linux
+        system("clear");
+    #elif linux
+        system("clear");
+    #elif WIN32
+        system("cls");
+    #elif Win32
+        system("cls");
+    #elif win32
+        system("cls");
+    #else
+        fprintf(stderr, "Sistema inválido\n");
+    #endif
 }
 
 void listar(){
@@ -576,7 +595,7 @@ void pesquisar_campo(){
                 } 
             }
             if(conteudo == 0){
-                system("clear");
+                limpar();
                 printf("----- PESQUISAR VALOR -----\n");
                 coluna *Colunas = NULL;
                 Colunas = malloc(cont*sizeof(coluna));
@@ -636,7 +655,7 @@ void pesquisar_registro(char *nome, int posicao, int tipo){
     else{
         printf("Insira o valor a ser pesquisado\n");
         scanf("%s", valor);
-        system("clear");
+        limpar();
         while(x != 0){
             printf("----- PESQUISAR VALOR -----\n");
             printf("Escolha a opção para a pesquisa:\n");
@@ -649,11 +668,11 @@ void pesquisar_registro(char *nome, int posicao, int tipo){
             printf("0-Parar pesquisa\n");
             scanf("%d", &x);
             if(x < 0 || x > 6){
-                system("clear");
+                limpar();
                 printf("Opção inválida\n");
             }
             else if(x != 0){
-                system("clear");
+                limpar();
                 realizar_busca(nome, valor, posicao, tipo, x);
             }
         }

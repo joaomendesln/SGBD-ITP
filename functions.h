@@ -27,6 +27,7 @@ void criar_tabela();
 void inserir_linha();
 void inserir_nome(char *nome);
 int ler_tabela(char *nome);
+void limpar();
 void listar();
 void listar_conteudo();
 void pesquisar_campo();

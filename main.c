@@ -1,7 +1,7 @@
 #include "functions.h"
 #include <stdio.h>
 int main(void){
-    system("clear");
+    limpar();
     int x, fim=0, inser = 1;
     printf("Bem-vindo/a ao banco de dados\n\n");
     while(fim != 1){
@@ -10,14 +10,14 @@ int main(void){
         getchar();
         switch(x){
             case 1:
-                system("clear");
+                limpar();
                 printf("----- CRIAR TABELA -----\n");
                 criar_tabela();
-                system("clear");
+                limpar();
                 printf("Tabela criada com sucesso!\n");
                 break;
             case 2:
-                system("clear");
+                limpar();
                 printf("----- LISTAR TABELAS -----\n");
                 listar();
                 break;
@@ -25,35 +25,35 @@ int main(void){
                 inserir_linha();
                 break;
             case 4:
-                system("clear");
+                limpar();
                 printf("----- LISTAR CONTEUDO -----\n");
                 listar();
                 printf("\n");
                 listar_conteudo();
                 break;
             case 5:
-                system("clear");
+                limpar();
                 printf("----- PESQUISAR VALOR -----\n");
                 listar();
                 printf("\n");
                 pesquisar_campo();
                 break;
             case 6:
-                system("clear");
+                limpar();
                 printf("----- APAGAR REGISTRO -----\n");
                 listar();
                 printf("\n");
                 apagar_registro();
                 break;
             case 7:
-                system("clear");
+                limpar();
                 printf("----- APAGAR TABELA -----\n");
                 listar();
                 printf("\n");
                 apagar_tabela();
                 break;
             case 0:
-                system("clear");
+                limpar();
                 fim = 1;
                 printf("Até logo!\n");
                 break;
