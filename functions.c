@@ -235,7 +235,7 @@ int checar_float(char *nome){
         if (x == 46) pontos++;
     }
 
-    if (pontos > 1) return 0;
+    if (pontos > 1 || pontos == 0) return 0;
     return 1;
 }
 
@@ -299,14 +299,53 @@ int checar_nome_tabela(char *nome){
 }
 
 int compara_string_proxima(char *a, char *b){
-    int cont = 0, prox = 0;
+    int cont = 0, igual = 0;
     while(a[cont] != '\0' && b[cont] != '\0'){
-        if(a[cont] == b[cont] || a[cont]+1 == b[cont] || a[cont]+2 == b[cont] || a[cont]-1 == b[cont] || a[cont]-2 == b[cont]){
-            prox++;
+        if(a[cont] == b[cont]){
+            igual++;
         }
         cont++;
     }
-    return cont/prox;
+    if(igual == 0) return 10;
+    return (int)(cont/igual);
+}
+
+double converter_string_em_double(char *nome){
+    int tamanho = strlen(nome), p = (int)nome[0], c, posicao = 0, qtdDecimais = 0;
+    double cont = 0, numero = 0, decimal = 0;
+    for (int i = 0; i < tamanho; i++){
+        c = (int)nome[i];
+        if (c == 46) {
+            posicao = i;
+            break;
+        }
+    }
+
+    posicao++;
+    if(p != 45){
+        for (int i = posicao - 2; i >= 0; i--){
+            int x = (int)nome[i] % 48;
+            numero += x * pow(10,cont);
+            cont++;
+        }
+    }
+    else{
+        for (int i = posicao - 2; i > 0; i--){
+            int x = (int)nome[i] % 48;
+            numero += x * pow(10,cont);
+            cont++;
+        }
+        numero *= -1;
+    }
+    cont = 0;
+    for (int i = tamanho - 1; i >= posicao; i--){
+        int x = (int)nome[i] % 48;
+        decimal += x * pow(10,cont);
+        cont++;
+    }
+    decimal = decimal / pow(10,cont);
+    if (p == 45) decimal *= -1;
+    return (numero + decimal);
 }
 
 int converter_string_em_inteiro(char *nome){
@@ -441,6 +480,15 @@ void criar_tabela(){
     free(Colunas);
 }
 
+void escolher_listagem(){
+    char *nome;
+    nome =  malloc(TAMANHO);
+    receber_nome_tabela(nome, 1);
+    printf("\n");
+    listar_conteudo(nome);
+    free(nome);
+}
+
 void inserir_linha(){
     limpar();
     printf("----- INSERIR REGISTRO -----\n");
@@ -537,37 +585,33 @@ void listar(){
     fclose(arquivo);
 }
 
-void listar_conteudo(){
-    char *nome, a, c;
-    nome =  malloc(TAMANHO);
-    int fim = 1;
-    receber_nome_tabela(nome, 1);
-    printf("\n");
-    alocar_arquivo(&arquivo, nome, "r");
+void listar_conteudo(char *nome){
+    char a, c;
+    FILE *listagem;
+    alocar_arquivo(&listagem, nome, "r");
     //caso de erro: arquivo não abre
-    if(arquivo == NULL){
+    if(listagem == NULL){
         printf("Erro na abertura do arquivo %s\n", nome);
     }
     else{
-        fscanf(arquivo, "%s\n", nome);
-        fscanf(arquivo, "%c", &c);
+        fscanf(listagem, "%s\n", nome);
+        fscanf(listagem, "%c", &c);
         a = (char)c;
-        while (a != '\n' && !feof(arquivo)){
-            fscanf(arquivo, "%c", &c);
+        while (a != '\n' && !feof(listagem)){
+            fscanf(listagem, "%c", &c);
             a = (char) c;
-            if(feof(arquivo)){
-                printf("Não há conteudo na tabela escolhida");
-            } 
         }
-        while (!feof(arquivo)){
-            fscanf(arquivo, "%c", &c);
+        if(feof(listagem)){
+            printf("Não há conteudo na tabela escolhida");
+        } 
+        while (!feof(listagem)){
+            fscanf(listagem, "%c", &c);
             a = (char) c;
             printf("%c", a);
         }
-        fclose(arquivo);
+        fclose(listagem);
         printf("\n");
     }
-    free(nome);
 }
 
 void pesquisar_campo(){
@@ -647,48 +691,50 @@ void pesquisar_campo(){
 void pesquisar_registro(char *nome, int posicao, int tipo){
     char *valor;
     valor = malloc(TAMANHO);
-    int x = 1;
-    //caso de erro: arquivo não abre
-    if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
-    }
-    else{
+    int x = 1, fim = 0, comp;
+    while(fim != 1){
         printf("Insira o valor a ser pesquisado\n");
         scanf("%s", valor);
-        limpar();
-        while(x != 0){
-            printf("----- PESQUISAR VALOR -----\n");
-            printf("Escolha a opção para a pesquisa:\n");
-            printf("1-Valores maiores que o valor informado\n");
-            printf("2-Valores maiores que ou iguais ao valor informado\n");
-            printf("3-Valores iguais ao valor informado\n");
-            printf("4-Valores menores que o valor informado\n");
-            printf("5-Valores menores que ou iguais ao valor informado\n");
-            printf("6-Valores próximo ao valor informado\n");
-            printf("0-Parar pesquisa\n");
-            scanf("%d", &x);
-            if(x < 0 || x > 6){
-                limpar();
-                printf("Opção inválida\n");
-            }
-            else if(x != 0){
-                limpar();
-                realizar_busca(nome, valor, posicao, tipo, x);
-            }
+        fim = checar_chamada_campo(valor, tipo);
+        if(fim == 0) printf("Insira um valor do tipo correto\n");
+    }
+    limpar();
+    printf("Conteudo da tabela:\n");
+    listar_conteudo(nome);
+    printf("\n");
+    while(x != 0){
+        printf("----- PESQUISAR VALOR -----\n");
+        printf("Escolha a opção para a pesquisa:\n");
+        printf("1-Valores maiores que o valor informado\n");
+        printf("2-Valores maiores que ou iguais ao valor informado\n");
+        printf("3-Valores iguais ao valor informado\n");
+        printf("4-Valores menores que o valor informado\n");
+        printf("5-Valores menores que ou iguais ao valor informado\n");
+        printf("6-Valores próximos ao valor informado\n");
+        printf("0-Parar pesquisa\n");
+        scanf("%d", &x);
+        if(x < 0 || x > 6){
+            limpar();
+            printf("Opção inválida\n");
+        }
+        else if(x != 0){
+            limpar();
+            realizar_busca(nome, valor, posicao, tipo, x);
         }
     }
     free(valor);
 }
 
 void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x){
-    int y, z, cont = 0;
-    double numero;
+    int cont = 0;
+    double y, numero;
     char *comparador, a, b, c, d;
     FILE *leitura, *mostrar;
     alocar_arquivo(&leitura, nome, "r");
     alocar_arquivo(&mostrar, nome, "r");
     comparador = malloc(TAMANHO);
-    y = converter_string_em_inteiro(valor);
+    if(tipo == 2) y = converter_string_em_inteiro(valor);
+    else if(tipo == 3 || tipo == 4) y = converter_string_em_double(valor);
     //pula as duas primeiras linhas do ponteiro leitura
     fscanf(leitura, "%s\n", nome);
     fscanf(leitura, "%c", &b);

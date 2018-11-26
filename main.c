@@ -29,7 +29,7 @@ int main(void){
                 printf("----- LISTAR CONTEUDO -----\n");
                 listar();
                 printf("\n");
-                listar_conteudo();
+                escolher_listagem();
                 break;
             case 5:
                 limpar();
