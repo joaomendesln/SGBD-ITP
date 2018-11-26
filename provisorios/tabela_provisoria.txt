@@ -1,13 +1,4 @@
-placeholder
-2 1 1 id | 2 0 1 idade | 
-1 | 12 | 
-2 | 13 | 
-3 | 14 | 
-4 | 15 | 
-5 | 16 | 
-6 | 17 | 
-7 | 10 | 
-8 | 20 | 
-9 | 5 | 
-10 | 50 | 
-11 | 12 | 
+teste
+2 1 1 id | 5 0 1 especie | 5 0 1 nome | 2 0 1 idade | 
+1 | cachorro | toto | 9 | 
+3 | tartaruga | sodk | 234234 | 

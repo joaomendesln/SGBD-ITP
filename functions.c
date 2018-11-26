@@ -489,6 +489,40 @@ void escolher_listagem(){
     free(nome);
 }
 
+int espacos_por_coluna(char *nome, int qtdColunas, int posicao){
+    int result = 0;
+    coluna Coluna;
+    char *valor;
+    valor = malloc(TAMANHO);
+    alocar_arquivo(&arquivo, nome, "r");
+    if(arquivo == NULL){
+        printf("Erro na abertura do arquivo %s\n", nome);
+    }
+    else{
+        fscanf(arquivo, "%s\n", nome);
+        for (int i = 0; i < qtdColunas; i++){
+            fscanf(arquivo, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            if (i == posicao){
+                if (strlen (Coluna.nome_coluna) > result) result = strlen(Coluna.nome_coluna);
+            }
+
+        }
+        fscanf(arquivo, "\n");
+        while(!feof(arquivo)){
+            for (int i = 0; i < qtdColunas; i++){
+                fscanf(arquivo, "%s | ", valor);
+                if (i == posicao){
+                    if (strlen (valor) > result) result = strlen(valor);
+                }
+            }
+            fscanf(arquivo, "\n");
+        }
+        return result;
+    }
+    free(valor);
+    return 0;
+}
+
 void inserir_linha(){
     limpar();
     printf("----- INSERIR REGISTRO -----\n");
@@ -586,9 +620,13 @@ void listar(){
 }
 
 void listar_conteudo(char *nome){
-    char a, c;
+    char a, c, *valor;
+    valor = malloc(TAMANHO);
     FILE *listagem;
+    coluna Coluna;
     alocar_arquivo(&listagem, nome, "r");
+    int qtdColunas = ler_tabela(nome);
+    int espacos[qtdColunas], alinhar = 0;
     //caso de erro: arquivo não abre
     if(listagem == NULL){
         printf("Erro na abertura do arquivo %s\n", nome);
@@ -603,15 +641,44 @@ void listar_conteudo(char *nome){
         }
         if(feof(listagem)){
             printf("Não há conteudo na tabela escolhida");
-        } 
+        }
+        fseek(listagem, 0, SEEK_SET);
+        fscanf(listagem, "%s\n", nome);
+        for (int i = 0; i < qtdColunas; i++){
+            espacos[i] = espacos_por_coluna(nome, qtdColunas, i);
+        }
+        for (int i = 0; i < qtdColunas; i++){
+            if (i == 0) printf(" ");
+            fscanf(listagem, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            printf("%s ", Coluna.nome_coluna);
+            alinhar = espacos[i] - strlen(Coluna.nome_coluna);
+            for (int j = 0; j < alinhar; j++) {
+                printf(" ");
+            }
+            printf("| ");
+        }
+        printf("\n");
+        fscanf(listagem, "\n");
+
         while (!feof(listagem)){
-            fscanf(listagem, "%c", &c);
-            a = (char) c;
-            printf("%c", a);
+            for (int i = 0; i < qtdColunas; i++){
+                if (i == 0) printf(" ");
+                fscanf(listagem, "%s | ", valor);
+                printf("%s ", valor);
+                alinhar = espacos[i] - strlen(valor);
+                for (int j = 0; j < alinhar; j++) {
+                    printf(" ");
+                }
+                printf("| ");
+
+            }
+            fscanf(listagem, "\n");
+            printf("\n");
         }
         fclose(listagem);
         printf("\n");
     }
+    free(valor);
 }
 
 void pesquisar_campo(){
