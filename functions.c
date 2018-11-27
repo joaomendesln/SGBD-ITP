@@ -45,11 +45,12 @@ void apagar_registro(){
         }
         while(fim!=1){
             printf("Insira a chave primaria do registro que deseja apagar:\n");
-            while (validarCampo != 1){
+            /*while (validarCampo != 1){
                 scanf("%s", valor);
                 validarCampo = checar_chamada_campo(valor, 2);
                 if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
-            }
+            }*/
+            receber_validacao(nome, valor);
             validarCampo = 0;
             fim = verificar_chave(nome, valor);
             if(fim == 0) printf("Esse valor não existe\n");
@@ -95,7 +96,6 @@ void receber_validacao(char *nome, char *valor){
         validarCampo = checar_chamada_campo(valor, 2);
         if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
     }
-    validarCampo = 0;
 }
 
 void apagar_tabela(){

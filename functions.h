@@ -37,6 +37,7 @@ void pesquisar_campo();
 void pesquisar_registro(char *nome, int posicao, int tipo);
 int realizar_busca(char *nome, char *valor, int posicao, int tipo, int x);
 void receber_nome_tabela(char *nome, int i);
+void receber_validacao(char *nome, char *valor);
 void transcrever_colunas(FILE *leitura, FILE *escritaProvisoria, coluna *Coluna);
 int ultimo_id_tabela(char *nome);
 int verificar_chave(char *nome, char *valor);
