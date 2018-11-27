@@ -131,3 +131,157 @@ void mostrar_num_caracteres(){
     }*/
     //printf("\n");
 }
+void apagar_registro(){
+    char *nome, *valor, *registro, *campo, c, a;
+    nome = malloc(TAMANHO);
+    valor = malloc(TAMANHO);
+    campo = malloc(TAMANHO);
+    int fim = 0, validarCampo = 0, qtdColunas = 0, qtdLinhas = 0, escreverLinha = 1, quebrarLinha = 0, tipo = 0, cont = 0;
+    FILE *escritaProvisoria = fopen("provisorios/tabela_provisoria.txt", "w+");
+    FILE *leituraProvisoria = fopen("provisorios/tabela_provisoria.txt", "r");
+    FILE *leitura;
+    coluna Coluna;
+    receber_nome_tabela(nome, 1);
+    alocar_arquivo(&leitura, nome, "r");
+    while (fscanf(leitura, "%c", &c) != EOF) {
+        a = (char) c;
+        if(a == '\n') {
+            qtdLinhas++;
+        }
+    }
+    fseek(leitura, 0, SEEK_SET);
+    if(escritaProvisoria == NULL || leituraProvisoria == NULL || leitura == NULL) printf("Erro na abertura de arquivo\n");
+    else{
+        fscanf(leitura, "%s\n", nome);
+        fprintf(escritaProvisoria, "%s\n", nome);
+        qtdColunas = ler_tabela(nome);
+        for (int i = 0; i < qtdColunas; i++){
+            fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            fprintf(escritaProvisoria, "%d %d %d %s | ", Coluna.tipo, Coluna.ai, Coluna.not_null, Coluna.nome_coluna);
+            if (i == 0) {
+                tipo = Coluna.tipo;
+            }
+        }
+
+        while(fim!=1){
+            printf("Insira a chave primaria do registro que deseja apagar:\n");
+            while (validarCampo != 1){
+                scanf("%s", valor);
+                validarCampo = checar_chamada_campo(valor, tipo);
+                if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
+            }
+            validarCampo = 0;
+            fim = verificar_chave(nome, valor);
+            if(fim == 0) printf("Esse valor não existe\n");
+        }
+        fprintf(escritaProvisoria, "\n");
+        while (!feof(leitura)){
+            for (int i = 0; i < qtdColunas; i++){
+                fscanf(leitura, "%s | ", campo);
+                if(i == 0 && strcmp(valor, campo) == 0) {
+                    escreverLinha = 0;
+                    continue;
+                }
+                else{
+                    if (escreverLinha == 1){
+                        fprintf(escritaProvisoria, "%s | ", campo);
+                        quebrarLinha = 1;
+                    }
+                }
+            }
+            cont++;
+            if (quebrarLinha == 1 && cont != qtdLinhas-1) fprintf(escritaProvisoria, "\n");
+            escreverLinha = 1;
+            quebrarLinha = 0;
+            fscanf(leitura, "\n");
+        }
+        fclose(escritaProvisoria);
+        FILE *sobrescreverTabela;
+        alocar_arquivo(&sobrescreverTabela, nome, "w+");
+
+        while(fscanf(leituraProvisoria, "%c", &c) != EOF){
+            fprintf(sobrescreverTabela, "%c", c);
+        }
+        fclose(leituraProvisoria);
+        fclose(sobrescreverTabela);
+    }
+    free(campo);
+    free(nome);
+    free(valor);
+}
+void apagar_registro(){
+    char *nome, *valor, *registro, *campo, c, a;
+    nome = malloc(TAMANHO);
+    valor = malloc(TAMANHO);
+    campo = malloc(TAMANHO);
+    int fim = 0, validarCampo = 0, qtdColunas = 0, qtdLinhas = 0, escreverLinha = 1, quebrarLinha = 0, cont = 0;
+    FILE *escritaProvisoria = fopen("provisorios/tabela_provisoria.txt", "w+");
+    FILE *leituraProvisoria = fopen("provisorios/tabela_provisoria.txt", "r");
+    FILE *leitura;
+    coluna Coluna;
+    receber_nome_tabela(nome, 1);
+    alocar_arquivo(&leitura, nome, "r");
+    while (fscanf(leitura, "%c", &c) != EOF) {
+        a = (char) c;
+        if(a == '\n') {
+            qtdLinhas++;
+        }
+    }
+    fseek(leitura, 0, SEEK_SET);
+    if(escritaProvisoria == NULL || leituraProvisoria == NULL || leitura == NULL) printf("Erro na abertura de arquivo\n");
+    else{
+        fscanf(leitura, "%s\n", nome);
+        fprintf(escritaProvisoria, "%s\n", nome);
+        qtdColunas = ler_tabela(nome);
+        for (int i = 0; i < qtdColunas; i++){
+            fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            fprintf(escritaProvisoria, "%d %d %d %s | ", Coluna.tipo, Coluna.ai, Coluna.not_null, Coluna.nome_coluna);
+            //transcrever_colunas(leitura, escritaProvisoria, Coluna);
+        }
+
+        while(fim!=1){
+            printf("Insira a chave primaria do registro que deseja apagar:\n");
+            while (validarCampo != 1){
+                scanf("%s", valor);
+                validarCampo = checar_chamada_campo(valor, 2);
+                if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
+            }
+            validarCampo = 0;
+            fim = verificar_chave(nome, valor);
+            if(fim == 0) printf("Esse valor não existe\n");
+        }
+        fprintf(escritaProvisoria, "\n");
+        while (!feof(leitura)){
+            for (int i = 0; i < qtdColunas; i++){
+                fscanf(leitura, "%s | ", campo);
+                if(i == 0 && strcmp(valor, campo) == 0) {
+                    escreverLinha = 0;
+                    continue;
+                }
+                else{
+                    if (escreverLinha == 1){
+                        fprintf(escritaProvisoria, "%s | ", campo);
+                        quebrarLinha = 1;
+                    }
+                }
+            }
+            cont++;
+            if (quebrarLinha == 1 && cont != qtdLinhas-1) fprintf(escritaProvisoria, "\n");
+            escreverLinha = 1;
+            quebrarLinha = 0;
+            fscanf(leitura, "\n");
+        }
+        fclose(escritaProvisoria);
+        FILE *sobrescreverTabela;
+        alocar_arquivo(&sobrescreverTabela, nome, "w+");
+
+        while(fscanf(leituraProvisoria, "%c", &c) != EOF){
+            fprintf(sobrescreverTabela, "%c", c);
+        }
+        fclose(leituraProvisoria);
+        fclose(sobrescreverTabela);
+    }
+    free(campo);
+    free(nome);
+    free(valor);
+}
