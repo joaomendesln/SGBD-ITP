@@ -5,7 +5,7 @@ int main(void){
     int x, fim=0, inser = 1;
     printf("Bem-vindo/a ao banco de dados\n\n");
     while(fim != 1){
-        printf("----- MENU -----\n1-Criar tabela\n2-Listar todas as tabelas\n3-Inserir registro em uma tabela\n4-Listar dados de uma tabela\n5-Pesquisar valor em uma tabela\n6-Apagar um registro de uma tabela\n7-Apagar uma tabela\n0-Sair\n");
+        printf("----- MENU PRINCIPAL -----\n1-Criar tabela\n2-Listar todas as tabelas\n3-Inserir registro em uma tabela\n4-Listar dados de uma tabela\n5-Pesquisar valor em uma tabela\n6-Apagar um registro de uma tabela\n7-Apagar uma tabela\n8-Atualizar registro\n0-Sair\n");
         scanf("%d", &x);
         getchar();
         switch(x){
@@ -51,6 +51,13 @@ int main(void){
                 listar();
                 printf("\n");
                 apagar_tabela();
+                break;
+            case 8:
+                limpar();
+                printf("----- ATUALIZAR REGISTRO -----\n");
+                listar();
+                printf("\n");
+                atualizar_registro();
                 break;
             case 0:
                 limpar();

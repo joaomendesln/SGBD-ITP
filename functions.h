@@ -14,6 +14,7 @@ typedef struct {
 void alocar_arquivo(FILE** ptr, char *nome, char modo[]);
 void apagar_registro();
 void apagar_tabela();
+void atualizar_registro();
 void chamar_campos(char *nome, int qtd);
 int checar_char(char *nome);
 int checar_float(char *nome);
@@ -34,7 +35,7 @@ void listar();
 void listar_conteudo();
 void pesquisar_campo();
 void pesquisar_registro(char *nome, int posicao, int tipo);
-void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x);
+int realizar_busca(char *nome, char *valor, int posicao, int tipo, int x);
 void receber_nome_tabela(char *nome, int i);
 int ultimo_id_tabela(char *nome);
 int verificar_chave(char *nome, char *valor);
