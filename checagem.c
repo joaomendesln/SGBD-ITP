@@ -3,6 +3,7 @@
 #include <stdio.h>
 #define TAMANHO 100
 
+//checa se a string inserida é um char
 int checar_char(char *nome){
     if (strcmp(nome, "null") != 0){
         int tamanho = strlen(nome);
@@ -10,7 +11,7 @@ int checar_char(char *nome){
     }
     return 1;
 }
-
+//checa se a string inserida é um float (ou double)
 int checar_float(char *nome){
     if (strcmp(nome, "null") != 0){
         int tamanho = strlen(nome), x, p, pontos = 0;
@@ -36,7 +37,7 @@ int checar_float(char *nome){
     }
     return 1;
 }
-
+//checa se a string inserida é um int
 int checar_inteiro(char *nome){
     if (strcmp(nome, "null") != 0){
         int tamanho = strlen(nome), x, p;
@@ -55,7 +56,7 @@ int checar_inteiro(char *nome){
     }
     return 1;
 }
-
+//recebe um valor e seu suposto tipo e checa se é do tipo correto
 int checar_chamada_campo(char *nome, int tipo){
     if (tipo == 1){
         return checar_char(nome);
@@ -71,7 +72,7 @@ int checar_chamada_campo(char *nome, int tipo){
     }
     return 1;
 }
-
+//checa se já existe uma tabela com o mesmo nome que o valor inserido
 int checar_nome_tabela(char *nome){
     char *tabela;
     tabela = malloc(TAMANHO);

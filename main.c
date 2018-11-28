@@ -13,8 +13,6 @@ int main(void){
                 limpar();
                 printf("----- CRIAR TABELA -----\n");
                 criar_tabela();
-                limpar();
-                printf("Tabela criada com sucesso!\n");
                 break;
             case 2:
                 limpar();

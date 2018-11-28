@@ -1,6 +1,7 @@
 #include "math.h"
 #include "convert.h"
 
+//converte uma string em double
 double converter_string_em_double(char *nome){
     int tamanho = strlen(nome), p = (int)nome[0], c, posicao = 0, qtdDecimais = 0;
     double cont = 0, numero = 0, decimal = 0;
@@ -38,7 +39,7 @@ double converter_string_em_double(char *nome){
     if (p == 45) decimal *= -1;
     return (numero + decimal);
 }
-
+//converte uma string em inteiro
 int converter_string_em_inteiro(char *nome){
     int tamanho = strlen(nome), numero = 0, sinal = 1, p = (int)nome[0];
     float cont = 0;
