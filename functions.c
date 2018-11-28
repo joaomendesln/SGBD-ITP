@@ -1,7 +1,10 @@
 #include "functions.h"
+#include "checagem.h"
+#include "convert.h"
 #include <stdio.h>
 #define TAMANHO 100
 
+//util
 void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
     char *provisorio;
     provisorio = malloc(TAMANHO);
@@ -23,6 +26,7 @@ void apagar_registro(){
     FILE *leitura;
     coluna Coluna;
     receber_nome_tabela(nome, 1);
+    if (strcmp(nome, "/cancelar") == 0) { limpar(); return; }
     alocar_arquivo(&leitura, nome, "r");
     limpar();
     printf("Conteudo da tabela:\n");
@@ -61,6 +65,7 @@ void apagar_registro(){
                     if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
                 }*/
                 receber_validacao(nome, valor);
+                if (strcmp(valor, "/cancelar") == 0) { limpar(); return; }
                 validarCampo = 0;
                 fim = verificar_chave(nome, valor);
                 if(fim == 0) printf("Esse valor não existe\n");
@@ -107,6 +112,7 @@ void receber_validacao(char *nome, char *valor){
     int validarCampo = 0;
     while (validarCampo != 1){
         scanf("%s", valor);
+        if (strcmp(valor, "/cancelar") == 0) return;
         validarCampo = checar_chamada_campo(valor, 2);
         if (validarCampo == 0) printf("Insira um conteúdo do tipo correto\n");
     }
@@ -122,6 +128,7 @@ void apagar_tabela(){
     FILE *leituraProvisoria = fopen("provisorios/lista_provisoria.txt", "r");
     FILE *listaTabelas = fopen("tabelas.txt", "r");
     receber_nome_tabela(nome, 1);
+    if (strcmp(nome, "/cancelar") == 0) { limpar(); return; }
     //caso de erro: arquivo não abre
     if(listaTabelas == NULL){
         printf("Erro na abertura do arquivo %s\n", nome);
@@ -207,11 +214,6 @@ void atualizar_registro(){
                 fim = 0;
                 printf("Registro encontrado:\n");
                 linha = listar_registro(nome, valor);
-                /*printf("Colunas disponiveis:\n");
-                for(int i = 1; i < qtdColunas; i++){
-                    printf("%s  ", Colunas[i].nome_coluna);
-                    //if(i % 3 == 0 && i != 0 && i != (qtdColunas-1) && i != (qtdColunas-2)) printf("\n");
-                }*/
                 while(fim!=1){
                     printf("\nInsira a coluna que deseja alterar\n");
                     scanf("%s", campo);
@@ -344,102 +346,6 @@ void chamar_campos(char *nome, int qtd){
     free(valor);  
 }
 
-int checar_char(char *nome){
-    if (strcmp(nome, "null") != 0){
-        int tamanho = strlen(nome);
-        if (tamanho > 1) return 0;
-    }
-    return 1;
-}
-
-int checar_float(char *nome){
-    if (strcmp(nome, "null") != 0){
-        int tamanho = strlen(nome), x, p, pontos = 0;
-
-        p = (int)nome[0];
-        if (p != 45 && p < 48 || p > 57){
-            return 0;
-        }
-
-        for (int i = tamanho - 1; i > 0; i--){
-            x = (int)nome[i];
-            if (x != 46 && x < 48 || x > 57){
-                return 0;
-            }
-        }
-
-        for (int i = tamanho - 1; i > 0; i--){
-            x = (int)nome[i];
-            if (x == 46) pontos++;
-        }
-
-        if (pontos > 1 || pontos == 0) return 0;
-    }
-    return 1;
-}
-
-int checar_inteiro(char *nome){
-    if (strcmp(nome, "null") != 0){
-        int tamanho = strlen(nome), x, p;
-
-        p = (int)nome[0];
-        if (p != 45 && p < 48 || p > 57){
-            return 0;
-        }
-
-        for (int i = tamanho - 1; i > 0; i--){
-            x = (int)nome[i];
-            if (x < 48 || x > 57){
-                return 0;
-            }
-        }
-    }
-    return 1;
-}
-
-int checar_chamada_campo(char *nome, int tipo){
-    if (tipo == 1){
-        return checar_char(nome);
-    }
-    if (tipo == 2){
-        return checar_inteiro(nome);
-    }
-    if (tipo == 3){
-        return checar_float(nome);
-    }
-    if (tipo == 4){
-        return checar_float(nome);
-    }
-    return 1;
-}
-
-int checar_nome_tabela(char *nome){
-    char *tabela;
-    tabela = malloc(TAMANHO);
-    //abertura de arquivo tabelas.txt para leitura 
-    FILE *arquivo;
-    arquivo = fopen("tabelas.txt", "r");
-    //caso de erro: o arquivo não abre
-    if(arquivo == NULL){
-        printf("Erro na abertura do arquivo tabelas\n");
-        //retorno 2 para erros
-        return 2;
-    }
-    //leitura dos nomes das tabelas até o fim do arquivo
-    else{
-        while (fscanf(arquivo, "%s\n", tabela) != EOF) {
-            if (strcmp(nome, tabela) == 0){
-                fclose(arquivo);
-                return 0;
-            }
-        }        
-    }
-    free(tabela);
-    fclose(arquivo);
-    //retorno 1 caso não haja uma tabela com o nome escolhido
-    return 1;
-}
-
 int compara_string_proxima(char *a, char *b){
     int cont = 0, igual = 0;
     while(a[cont] != '\0' && b[cont] != '\0'){
@@ -452,65 +358,7 @@ int compara_string_proxima(char *a, char *b){
     return (int)(cont/igual);
 }
 
-double converter_string_em_double(char *nome){
-    int tamanho = strlen(nome), p = (int)nome[0], c, posicao = 0, qtdDecimais = 0;
-    double cont = 0, numero = 0, decimal = 0;
-    for (int i = 0; i < tamanho; i++){
-        c = (int)nome[i];
-        if (c == 46) {
-            posicao = i;
-            break;
-        }
-    }
-
-    posicao++;
-    if(p != 45){
-        for (int i = posicao - 2; i >= 0; i--){
-            int x = (int)nome[i] % 48;
-            numero += x * pow(10,cont);
-            cont++;
-        }
-    }
-    else{
-        for (int i = posicao - 2; i > 0; i--){
-            int x = (int)nome[i] % 48;
-            numero += x * pow(10,cont);
-            cont++;
-        }
-        numero *= -1;
-    }
-    cont = 0;
-    for (int i = tamanho - 1; i >= posicao; i--){
-        int x = (int)nome[i] % 48;
-        decimal += x * pow(10,cont);
-        cont++;
-    }
-    decimal = decimal / pow(10,cont);
-    if (p == 45) decimal *= -1;
-    return (numero + decimal);
-}
-
-int converter_string_em_inteiro(char *nome){
-    int tamanho = strlen(nome), numero = 0, sinal = 1, p = (int)nome[0];
-    float cont = 0;
-    if(p != 45){
-        for (int i = tamanho - 1; i >= 0; i--){
-            int x = (int)nome[i] % 48;
-            numero += x * pow(10,cont);
-            cont++;
-        }
-    }
-    else{
-        for (int i = tamanho - 1; i > 0; i--){
-            int x = (int)nome[i] % 48;
-            numero += x * pow(10,cont);
-            cont++;
-        }
-        numero *= -1;
-    }
-    return numero;
-}
-
+//util
 void criar_arquivo(char *nome){
     FILE *arquivo;
     alocar_arquivo(&arquivo, nome, "w");
@@ -630,11 +478,13 @@ void escolher_listagem(){
     char *nome;
     nome =  malloc(TAMANHO);
     receber_nome_tabela(nome, 1);
-    printf("\n");
+    limpar();
+    printf("Conteúdo da tabela:\n");
     listar_conteudo(nome);
     free(nome);
 }
 
+//util
 int espacos_por_coluna(char *nome, int qtdColunas, int posicao){
     char *valor;
     valor = malloc(TAMANHO);
@@ -697,7 +547,7 @@ void inserir_nome(char *nome){
     }
     fclose(arquivo);
 }
-
+// trocar nome para contar_colunas
 int ler_tabela(char *nome){
     char teste, a;
     int cont = 0;
@@ -948,6 +798,7 @@ int listar_registro(char *nome, char *id){
     return linha;
 }
 
+//util
 void listar_estilo_linha(int qtdColunas, int *espacos){
     printf("+");
     for (int i = 0, j = 0; j < qtdColunas; i++)
@@ -962,11 +813,6 @@ void listar_estilo_linha(int qtdColunas, int *espacos){
         }
     }
     printf("\n");
-}
-
-int navegacao(char *valor){
-    if (strcmp(valor, "/voltar")) 
-        return;
 }
 
 void pesquisar_campo(){
@@ -1263,6 +1109,9 @@ void receber_nome_tabela(char *nome, int i){
         while(fim!=1){
             printf("Insira o nome da tabela\n");
             scanf("%s", nome);
+            if (strcmp(nome, "/cancelar") == 0) {
+                return;
+            }
             fim = checar_nome_tabela(nome);
             if(fim == 0) printf("Essa tabela ja existe\n");
         }
@@ -1272,8 +1121,11 @@ void receber_nome_tabela(char *nome, int i){
         while(fim!=0){
             printf("Insira o nome da tabela\n");
             scanf("%s", nome);
+            if (strcmp(nome, "/cancelar") == 0) {
+                return;
+            }
             fim = checar_nome_tabela(nome);
-            if(fim == 1) printf("Essa tabela não existe\n");
+            if(fim == 1) printf("Essa tabela não existe.\n");
         }
     }
 }

@@ -8,4 +8,6 @@ tarefas:
 -escrever read.me
 -escrever comentários
 -fazer o relatório das etapas que fizemos
+
+- /cancelar no 1, 3, 8
 erros:
