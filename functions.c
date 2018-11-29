@@ -397,7 +397,7 @@ int compara_string_proxima(char *a, char *b){
         strcpy(copia, a);
         strcpy(compara, b);
     }
-    else if(maior = tb && menor == ta){
+    else if(maior == tb && menor == ta){
         strcpy(copia, b);
         strcpy(compara, a);
     }
@@ -405,36 +405,26 @@ int compara_string_proxima(char *a, char *b){
         strcpy(copia, b);
         strcpy(compara, a);
     }
-    printf("\nmaior: %d\n", maior);
-    printf("\nmenor: %d\n", menor);
     for(int j = 0; j < maior; j++){
         cont = 0;
+        igual = 0;
         for(int i = 0; i < menor; i++){
             if(compara[i] == copia[i]){
                 igual++;
             }
             cont++;
         }
-        if(igual > maxigual) maxigual == igual;
+        if(igual > maxigual) maxigual = igual;
         aux = copia[0];
-        for(int i = 0; i < maior; i++){
-            if(i == maior - 1){
-                copia[i] = aux;
+        for(int k = 0; k < maior; k++){
+            if(k == maior-1){
+                copia[k] = aux;
             }
             else{
-                copia[i] = copia[i+1];
+                copia[k] = copia[k+1];
             }
         }
-        printf("\nCopia: %s\n", copia);
-        printf("\ncont: %d\n", cont);
-        printf("\nmaxigual: %d\n", maxigual);
     }
-    /*while(a[cont] != '\0' && b[cont] != '\0'){
-        if(a[cont] == b[cont]){
-            igual++;
-        }
-        cont++;
-    }*/
     if(maxigual == 0) return 10;
     return (int)(cont/maxigual);
 }
@@ -674,6 +664,54 @@ campo escanear_campo(char *nome, int linha, int coluna){
     }
     fclose(r);
     return Campo;
+}
+//escreve o cabeçalho da tabela
+void escrever_cabecalho(char *nome){
+    char a, c, *valor;
+    valor = malloc(TAMANHO);
+    FILE *listagem;
+    coluna Coluna;
+    alocar_arquivo(&listagem, nome, "r");
+    int qtdColunas = contar_colunas(nome);
+    int espacos[qtdColunas], alinhar = 0, hifens = 0, idRegistro = 0, validar = 0, cont = 0, linha;
+    //caso de erro: arquivo não abre
+    if(listagem == NULL){
+        printf("Erro na abertura do arquivo %s\n", nome);
+    }
+    else{
+        fseek(listagem, 0, SEEK_SET);
+        fscanf(listagem, "%s\n", nome);
+        for (int i = 0; i < qtdColunas; i++){
+            espacos[i] = 0;
+        }
+        for (int i = 0; i < qtdColunas; i++){
+            fscanf(listagem, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            if (strlen(Coluna.nome_coluna) > espacos[i]) espacos[i] = strlen(Coluna.nome_coluna); 
+        }
+        fscanf(listagem, "\n");
+
+        for (int i = 0; i < qtdColunas; i++){
+            espacos[i] = espacos_por_coluna(nome, qtdColunas, i);
+        }
+        fseek(listagem, 0, SEEK_SET);
+        fscanf(listagem, "%s\n", nome);
+        //listando cabecalho
+        listar_estilo_linha(qtdColunas, espacos);
+        for (int i = 0; i < qtdColunas; i++){
+            if (i == 0) printf("| ");
+            fscanf(listagem, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+            printf("%s ", Coluna.nome_coluna);
+            alinhar = espacos[i] - strlen(Coluna.nome_coluna);
+            for (int j = 0; j < alinhar; j++) {
+                printf(" ");
+            }
+            printf("| ");
+        }
+        printf("\n");
+        listar_estilo_linha(qtdColunas, espacos);       
+        fclose(listagem);
+    }
+    free(valor);
 }
 //escolhe o arquivo a ter seus dados listados e os lista
 void escolher_listagem(){
@@ -1127,54 +1165,6 @@ void pesquisar_registro(char *nome, int posicao, int tipo, int not_null){
         free(lixo);
     }
 }
-//escreve o cabeçalho da tabela
-void escrever_cabecalho(char *nome){
-    char a, c, *valor;
-    valor = malloc(TAMANHO);
-    FILE *listagem;
-    coluna Coluna;
-    alocar_arquivo(&listagem, nome, "r");
-    int qtdColunas = contar_colunas(nome);
-    int espacos[qtdColunas], alinhar = 0, hifens = 0, idRegistro = 0, validar = 0, cont = 0, linha;
-    //caso de erro: arquivo não abre
-    if(listagem == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
-    }
-    else{
-        fseek(listagem, 0, SEEK_SET);
-        fscanf(listagem, "%s\n", nome);
-        for (int i = 0; i < qtdColunas; i++){
-            espacos[i] = 0;
-        }
-        for (int i = 0; i < qtdColunas; i++){
-            fscanf(listagem, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
-            if (strlen(Coluna.nome_coluna) > espacos[i]) espacos[i] = strlen(Coluna.nome_coluna); 
-        }
-        fscanf(listagem, "\n");
-
-        for (int i = 0; i < qtdColunas; i++){
-            espacos[i] = espacos_por_coluna(nome, qtdColunas, i);
-        }
-        fseek(listagem, 0, SEEK_SET);
-        fscanf(listagem, "%s\n", nome);
-        //listando cabecalho
-        listar_estilo_linha(qtdColunas, espacos);
-        for (int i = 0; i < qtdColunas; i++){
-            if (i == 0) printf("| ");
-            fscanf(listagem, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
-            printf("%s ", Coluna.nome_coluna);
-            alinhar = espacos[i] - strlen(Coluna.nome_coluna);
-            for (int j = 0; j < alinhar; j++) {
-                printf(" ");
-            }
-            printf("| ");
-        }
-        printf("\n");
-        listar_estilo_linha(qtdColunas, espacos);       
-        fclose(listagem);
-    }
-    free(valor);
-}
 //realiza uma busca na tabela pelo valor desejado no campo desejado e o modo da pesquisa
 void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x){
     char *comparador, *lixo, *teste, a, b, c, d;
@@ -1428,7 +1418,7 @@ void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x){
         }
     }
     if(cont == 0) {
-        //limpar();
+        limpar();
         printf("----- RESULTADO -----\n");
         printf("Nenhum valor encontrado\n");
     }

@@ -26,6 +26,7 @@ void criar_arquivo(char *nome);
 void criar_coluna(coluna Coluna);
 void criar_tabela();
 campo escanear_campo(char *nome, int linha, int coluna);
+void escrever_cabecalho(char *nome);
 void escolher_listagem();
 int espacos_por_coluna(char *nome, int qtdColunas, int posicao);
 void inserir_linha();
