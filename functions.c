@@ -7,6 +7,9 @@
 //aloca o ponteiro de arquivo desejado para o arquivo de nome inserido no modo inserido
 void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
     char *provisorio = malloc(TAMANHO);
+    if(provisorio == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     strcpy(provisorio, "./tabelas/");
     strcat(provisorio, nome);
     //criação de arquivo com o nome do parâmetro + ".txt"
@@ -20,7 +23,7 @@ void apagar_registro(){
     nome = malloc(TAMANHO);
     valor = malloc(TAMANHO);
     campo = malloc(TAMANHO);
-    int fim = 0, validarCampo = 0, qtdColunas = 0, qtdLinhas = 0, escreverLinha = 1, quebrarLinha = 0, cont = 0, conteudo = 0;
+    int fim = 0, validarCampo = 0, qtdColunas = 0, qtdLinhas = 0, escreverLinha = 1, quebrarLinha = 0, cont = 0, conteudo = 0, tipo = 0;
     //alocando ponteiro para uma tabela previamente definida para escrever o conteudo da tabela solicitada, antes de excluir um dos registros
     FILE *escritaProvisoria = fopen("provisorios/tabela_provisoria.txt", "w+");
     FILE *leitura;
@@ -76,30 +79,28 @@ void apagar_registro(){
             //...um "\n" ao arquivo provisório, já que só haverá quebra de linha após a linha de colunas se houver pelo menos um registro
             if(qtdLinhas >= 2) fprintf(escritaProvisoria, "\n");
             //enquanto o arquivo do ponteiro não chegar ao fim, o laço continuará rodando
-            while (!feof(leitura)){
-                //laço para escrever o valor de cada coluna de cada registro
-                for (int i = 0; i < qtdColunas; i++){
-                    //leitura do valor do campo no arquivo de leitura
-                    fscanf(leitura, "%s | ", campo);
-                    //se a chave primária do registro da linha atual for igual à inserida, a linha não será escrita no arquivo provisório
-                    if(i == 0 && strcmp(valor, campo) == 0)    
-                        escreverLinha = 0;
+            for (int i = 0; i < qtdLinhas; i++){
+                for (int j = 0; j < qtdColunas; j++){
+                    tipo = tipo_coluna(nome, j);
+                    strcpy(campo, escanear_campo(nome, i, j).nome);
+                    if(j == 0 && strcmp(valor, campo) == 0) {   escreverLinha = 0;  }
                     else{
                         //se a chave primária do registro da linha atual for diferente da inserida, a linha será escrita no arquivo provisório
                         if (escreverLinha == 1){
-                            fprintf(escritaProvisoria, "%s | ", campo);
+                            //printf("b\n");
+                            if (tipo == 5) fprintf(escritaProvisoria, "\"%s\" | ", campo);
+                            else fprintf(escritaProvisoria, "%s | ", campo);
                             //se a linha for escrita, será adicionado uma quebra de linha ao final
                             quebrarLinha = 1;
                         }
                     }
                 }
                 cont++;
-                //não haverá quebra de linha nas duas ultimas iterações, pois: (1) foi inserido uma linha a menos que o arquivo portanto será uma...
-                //...quebra de linha a menos (2) não há quebra de linha na última linha do arquivo na nossa formatação, então menos outra inserção
                 if (quebrarLinha == 1 && cont < qtdLinhas-1) fprintf(escritaProvisoria, "\n");
                 escreverLinha = 1;
                 quebrarLinha = 0;
-                fscanf(leitura, "\n");
+
+                printf("\n");
             }
             fclose(leitura);
             fclose(escritaProvisoria);
@@ -132,6 +133,9 @@ void apagar_tabela(){
     nome = malloc(TAMANHO);
     nomeArquivo = malloc(TAMANHO + 8);
     nomeTabela = malloc(TAMANHO);
+    if(nome == NULL || nomeArquivo == NULL || nomeTabela == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int status;
     //alocando ponteiro para um arquivo previamente definido para escrever o conteudo do arquivo com o nome das tabelas, antes de excluir uma das tabelas
     FILE *escritaProvisoria = fopen("provisorios/lista_provisoria.txt", "w+");
@@ -142,7 +146,7 @@ void apagar_tabela(){
     if (strcmp(nome, "/cancelar") == 0) { limpar(); return; }
     //caso de erro: arquivo não abre
     if(listaTabelas == NULL || escritaProvisoria == NULL){
-        printf("Erro na abertura do arquivo\n");
+        fprintf(stderr, "Erro na abertura do arquivo\n");
         return;
     }
     //leitura dos nomes das tabelas até o fim do arquivo
@@ -160,7 +164,7 @@ void apagar_tabela(){
         FILE *sobrescreverTabelas = fopen("tabelas.txt", "w+");
         //caso de erro: arquivo não abre
         if(leituraProvisoria == NULL || sobrescreverTabelas == NULL){
-            printf("Erro na abertura do arquivo\n");
+            fprintf(stderr, "Erro na abertura do arquivo\n");
             return;
         }
         //concatenando o caminho do arquivo, o nome do arquivo e a extensão .txt
@@ -190,12 +194,14 @@ void atualizar_registro(){
     nome = malloc(TAMANHO);
     campo = malloc(TAMANHO);
     valor = malloc(TAMANHO);
-    int qtdColunas = 0, conteudo = 0, fim = 0, posicao, tipo, linha, cont = 1, not_null;
+    int qtdColunas = 0, qtdLinhas = 0, conteudo = 0, fim = 0, posicao, tipo, linha, cont = 0, not_null;
     //alocando ponteiro para uma tabela previamente definida para escrever o conteudo da tabela solicitada, antes de alterar um dos registros
     FILE *escritaProvisoria = fopen("provisorios/tabela_provisoria.txt", "w+");
     FILE *leitura;
     //recebendo nome da tabela e alocando um ponteiro de arquivo com seu nome para leitura
     receber_nome_tabela(nome, 1);
+    qtdLinhas = contar_linhas(nome);
+    qtdColunas = contar_colunas(nome);
     if (strcmp(nome, "/cancelar") == 0) { limpar(); return; }
     alocar_arquivo(&leitura, nome, "r");
     //caso de erro: arquivo não abre
@@ -247,6 +253,8 @@ void atualizar_registro(){
             while(fim!=1){
                 printf("\nInsira a coluna que deseja alterar\n");
                 scanf("%s", campo);
+                getchar();
+                if (strcmp(campo, "/cancelar") == 0) { limpar(); return; }
                 for(int i = 1; i < qtdColunas; i++){
                     //ao encontrar um campo que seja igual ao inserido, a posição desse campo(ordem de escrita), seu tipo e sua capacidade de aceitar valores nulos são salvos
                     if(strcmp(campo, Colunas[i].nome_coluna) == 0){
@@ -262,24 +270,26 @@ void atualizar_registro(){
             //recebendo novo valor para a coluna a ser alterada
             printf("Insira o novo conteudo para a coluna \"%s\"\n", campo);
             receber_campo(valor, tipo, not_null);
-            //laço para rodar até o fim do arquivo leitura
-            while (!feof(leitura)){
-                //inserção da quebra de linha no arquivo provisório antes de cada registro
-                fprintf(escritaProvisoria, "\n");
-                //o laço vai rodar tantas vezes quanto o número de colunas da tabela, para que possamos inserir cada valor de coluna separadamente
-                for(int i = 0; i < qtdColunas; i++){
-                    //lendo valor por valor no arquivo original
-                    fscanf(leitura, "%s | ", campo);
-                    //ao chegar na mesma linha e na mesma posição do campo que foi alterado, o programa escreverá o novo valor no arquivo provisório
-                    if(cont == linha && i == posicao){
-                        fprintf(escritaProvisoria, "%s | ", valor);
+            if (strcmp(valor, "/cancelar") == 0) { limpar(); return; }
+            fprintf(escritaProvisoria, "\n");
+            for (int i = 0; i < qtdLinhas; i++){
+                for (int j = 0; j < qtdColunas; j++){
+                    tipo = tipo_coluna(nome, j);
+                    strcpy(campo, escanear_campo(nome, i, j).nome);
+                    if(i == linha && j == posicao) {
+
+                        if (tipo == 5) fprintf(escritaProvisoria, "\"%s\" | ", valor);
+                        else fprintf(escritaProvisoria, "%s | ", valor);
                     }
-                    //em todos os outros casos, o programa escreverá o valor antigo(já que todos os outros campos permanecem inalterados)
                     else{
-                        fprintf(escritaProvisoria, "%s | ", campo);
+                        if (tipo == 5) fprintf(escritaProvisoria, "\"%s\" | ", campo);
+                        else fprintf(escritaProvisoria, "%s | ", campo);
                     }
                 }
+                if (cont < qtdLinhas-1) fprintf(escritaProvisoria, "\n");
                 cont++;
+
+                printf("\n");
             }
             fclose(escritaProvisoria);
             fclose(leitura);
@@ -311,6 +321,9 @@ void atualizar_registro(){
 void chamar_campos(char *nome, int qtdColunas){
     char *valor;
     valor = malloc(TAMANHO);
+    if(valor == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int cont = 0, fim = 1, validarCampo = 0, loop = 1, inser = 1;
     //criação de ponteiros para escrita e leitura com o nome do parâmetro + ".txt"
     FILE *leitura, *escrita;
@@ -318,6 +331,9 @@ void chamar_campos(char *nome, int qtdColunas){
     while(loop != 0){
         alocar_arquivo(&leitura, nome, "r");
         alocar_arquivo(&escrita, nome, "a");
+        if(leitura == NULL || escrita == NULL){
+            fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
+        }
         fseek(leitura, 0, SEEK_SET);
         fseek(escrita, 0, SEEK_SET);
         //pulando a primeira linha (há apenas o nome da tabela)
@@ -327,7 +343,7 @@ void chamar_campos(char *nome, int qtdColunas){
         for(int i = 0; i < qtdColunas; i++){
             fscanf(leitura, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
             if(strcmp(Coluna.nome_coluna, "id") != 0 && i != 0){
-                printf("Insira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
+                printf("\nInsira o conteudo para a coluna \"%s\"\n", Coluna.nome_coluna);
                 receber_campo(valor, Coluna.tipo, Coluna.not_null);
                 if (strcmp(valor, "/cancelar") == 0) { limpar(); return; }
                 if(Coluna.tipo == 5){
@@ -344,7 +360,7 @@ void chamar_campos(char *nome, int qtdColunas){
                 }
                 else{
                     while(fim!=0){
-                        printf("Insira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
+                        printf("\nInsira o conteudo para a chave primaria \"%s\"\n", Coluna.nome_coluna);
                         receber_chave_primaria(valor);
                         if (strcmp(valor, "/cancelar") == 0) { limpar(); return; }
                         fim = verificar_chave(nome, valor);
@@ -364,6 +380,7 @@ void chamar_campos(char *nome, int qtdColunas){
             printf("Deseja inserir outro registro na tabela %s?\n1-Sim 0-Não\n", nome);
             scanf("%s", valor);
             getchar();
+            if (strcmp(valor, "/cancelar") == 0) { limpar(); return; }
             if(checar_inteiro(valor) == 1) loop = converter_string_em_inteiro(valor);
 
             if(checar_inteiro(valor) == 1 && loop >= 0 && loop <= 1){
@@ -435,7 +452,7 @@ int contar_colunas(char *nome){
     FILE *arquivo;
     alocar_arquivo(&arquivo, nome, "r");
     if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     else{
         fscanf(arquivo, "%s\n", nome);
@@ -456,6 +473,10 @@ int contar_linhas(char *nome){
     int qtdLinhas = 0;
     FILE *leitura;
     alocar_arquivo(&leitura, nome, "r");
+    //caso de erro: arquivo não abre
+    if(leitura == NULL){
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
+    }
     while (fscanf(leitura, "%c", &c) != EOF) {
         a = (char) c;
         if(a == '\n') {
@@ -471,7 +492,7 @@ void criar_arquivo(char *nome){
     alocar_arquivo(&arquivo, nome, "w");
     //caso de erro: arquivo não abre
     if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     //nome da tabela é inserido no início do arquivo criado
     else{
@@ -485,7 +506,7 @@ void criar_coluna(coluna Coluna){
     alocar_arquivo(&arquivo, Coluna.nome_tabela, "a");
     //caso de erro: o arquivo não abre
     if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", Coluna.nome_tabela);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", Coluna.nome_tabela);
     }
     //Coluna com as características do parâmetro é criado na tabela
     else{
@@ -497,12 +518,15 @@ void criar_coluna(coluna Coluna){
 void criar_tabela(){
 	coluna *Colunas;
     char *nome = malloc(TAMANHO), *lixo = malloc(TAMANHO);
+    if(nome == NULL || lixo == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int qtd, x, sid = 0, fim = 0;
     //estrutura para garantir que a tabela a ser criada ainda não exista
     receber_nome_tabela(nome, 0);
     if (strcmp(nome, "/cancelar") == 0) { limpar(); return; }
     while(fim!=1){
-        printf("Insira o numero de colunas\n");
+        printf("\nInsira o numero de colunas\n");
         receber_campo(lixo, 2, 1);
         if (strcmp(lixo, "/cancelar") == 0) { limpar(); return; }
         qtd = converter_string_em_inteiro(lixo);
@@ -511,12 +535,15 @@ void criar_tabela(){
     }
     fim = 0;
     Colunas = (coluna *) malloc(qtd*sizeof(coluna));
+    if(Colunas == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     for(int i = 0; i < qtd; i++){
         strcpy(Colunas[i].nome_tabela, nome);
     }
     free(nome);
     while(fim!=1){
-        printf("Deseja criar uma chave primaria padrão?\n1-Sim  0-Nao\n");
+        printf("\nDeseja criar uma chave primaria padrão?\n1-Sim  0-Nao\n");
         receber_campo(lixo, 2, 1);
         if (strcmp(lixo, "/cancelar") == 0) { limpar(); return; }
         sid = converter_string_em_inteiro(lixo);
@@ -534,9 +561,10 @@ void criar_tabela(){
                 fim = 0;
                 printf("Insira o nome da chave primaria (deve ser do tipo int)\n");
                 scanf("%s", Colunas[0].nome_coluna);
+                getchar();
                 if (strcmp(Colunas[0].nome_coluna, "/cancelar") == 0) { limpar(); return; }
                 while(fim!=1){
-                    printf("Terá auto-incremento?\n1-Sim  0-Não\n");
+                    printf("\nTerá auto-incremento?\n1-Sim  0-Não\n");
                     receber_campo(lixo, 2, 1);
                     if (strcmp(lixo, "/cancelar") == 0) { limpar(); return; }
                     Colunas[0].ai = converter_string_em_inteiro(lixo);
@@ -557,10 +585,11 @@ void criar_tabela(){
     printf("Insira o tipo e o nome de cada coluna\n1-char  2-int  3-float  4-double  5-string\nEx:'1 nome_Coluna'\n");
     for(int i = 2; i <= qtd; i++){
         while(fim != 1){
-            printf("%dº - ", i);
+            printf("\n%dº - ", i);
             scanf("%s", lixo);
             if (strcmp(lixo, "/cancelar") == 0) { limpar(); return; }
             scanf("%s", Colunas[i-1].nome_coluna);
+            getchar();
             if (strcmp(Colunas[i-1].nome_coluna, "/cancelar") == 0) { limpar(); return; }
             if(checar_inteiro(lixo) == 1) Colunas[i-1].tipo = converter_string_em_inteiro(lixo);
             if(checar_inteiro(lixo) == 1 && Colunas[i-1].tipo >= 1 && Colunas[i-1].tipo <= 5) {
@@ -576,8 +605,10 @@ void criar_tabela(){
         }
         fim = 0;
         while(fim != 1){
-            printf("Aceitará valores nulos?\n1-Sim  0-Não\n");
+            printf("\nAceitará valores nulos?\n1-Sim  0-Não\n");
             scanf("%s", lixo);
+            getchar();
+            if (strcmp(lixo, "/cancelar") == 0) { limpar(); return; }
             if(checar_inteiro(lixo) == 1) Colunas[i-1].not_null = converter_string_em_inteiro(lixo);
             if(checar_inteiro(lixo) == 1 && Colunas[i-1].not_null >= 0 && Colunas[i-1].not_null <= 1) fim = 1;
             else printf("Insira um valor válido\n");
@@ -600,75 +631,81 @@ void criar_tabela(){
 campo escanear_campo(char *nome, int linha, int coluna){
     char tabela[100], id[100], c, a = ' ';
     int x = 0, cont = 0, qtdLinhas = contar_linhas(nome), qtdColunas = contar_colunas(nome);
-    campo Campo;// = malloc(sizeof(campo));
-    FILE *r;
-    alocar_arquivo(&r, nome, "r");
+    campo Campo;
+    FILE *escanear;
+    alocar_arquivo(&escanear, nome, "r");
+    if(escanear == NULL){
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
+    }
     int fim = 0;
 
     //pular nome da tabela
-    fscanf(r, "%s\n", tabela);
+    fscanf(escanear, "%s\n", tabela);
 
     //pular linha de cabeçalho
     while(a != '\n'){
-        fscanf(r, "%c", &c);
+        fscanf(escanear, "%c", &c);
         a = (char)c;
     }
-    fscanf(r, "\n");
+    fscanf(escanear, "\n");
     a = ' ';
-    while(!feof(r)){
+    while(!feof(escanear)){
         for(int i = 0; i < qtdLinhas; i++){
             if (i == linha){
                 for (int j = 0; j < qtdColunas; j++){
                     a = ' ';
                     if (j == coluna){           
-                        fscanf(r, "%c", &c);
+                        fscanf(escanear, "%c", &c);
                         a = (char)c;
                         x = (int)c;
                         if (x != 34) {
-                            fseek(r, -1, SEEK_CUR);
-                            fscanf(r, "%s | ", Campo.nome);
+                            fseek(escanear, -1, SEEK_CUR);
+                            fscanf(escanear, "%s | ", Campo.nome);
                         }
                         else{
                             x = 0;
                             while (x != 34){
-                                fscanf(r, "%c", &c);
+                                fscanf(escanear, "%c", &c);
                                 a = (char)c;
                                 x = (int)c;
                                 if (x != 34) cont++;
                             }
-                            fseek(r, -cont - 1, SEEK_CUR);
-                            fgets(Campo.nome, cont + 1, r);
-                            fscanf(r, "\" | ");
+                            fseek(escanear, -cont - 1, SEEK_CUR);
+                            fgets(Campo.nome, cont + 1, escanear);
+                            fscanf(escanear, "\" | ");
                             cont = 0;
                         }
-                        fscanf(r, " | ");
+                        fscanf(escanear, " | ");
                     }
                     else {
-                        while((a != '|' ) && !feof(r)){
-                            fscanf(r, "%c", &c);
+                        while((a != '|' ) && !feof(escanear)){
+                            fscanf(escanear, "%c", &c);
                             a = (char)c;
                         }
-                        fscanf(r, " ");
+                        fscanf(escanear, " ");
                     }
                 }
             }
             else {
                 a = ' ';
-                while(a != '\n' && !feof(r)){
-                    fscanf(r, "%c", &c);
+                while(a != '\n' && !feof(escanear)){
+                    fscanf(escanear, "%c", &c);
                     a = (char)c;
                 }
-                fscanf(r, "\n");
+                fscanf(escanear, "\n");
             }
         }
     }
-    fclose(r);
+    fclose(escanear);
     return Campo;
 }
 //escreve o cabeçalho da tabela
 void escrever_cabecalho(char *nome){
     char a, c, *valor;
     valor = malloc(TAMANHO);
+    if(valor == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     FILE *listagem;
     coluna Coluna;
     alocar_arquivo(&listagem, nome, "r");
@@ -676,7 +713,7 @@ void escrever_cabecalho(char *nome){
     int espacos[qtdColunas], alinhar = 0, hifens = 0, idRegistro = 0, validar = 0, cont = 0, linha;
     //caso de erro: arquivo não abre
     if(listagem == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     else{
         fseek(listagem, 0, SEEK_SET);
@@ -717,6 +754,9 @@ void escrever_cabecalho(char *nome){
 void escolher_listagem(){
     char *nome;
     nome =  malloc(TAMANHO);
+    if(nome == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     receber_nome_tabela(nome, 1);
     if (strcmp(nome, "/cancelar") == 0) { limpar(); return; }
     limpar();
@@ -728,12 +768,15 @@ void escolher_listagem(){
 int espacos_por_coluna(char *nome, int qtdColunas, int posicao){
     char *valor;
     valor = malloc(TAMANHO);
+    if(valor == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int result = 0, qtdLinhas = contar_linhas(nome);
     FILE *arquivo;
     coluna Coluna;
     alocar_arquivo(&arquivo, nome, "r");
     if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     else{
         fscanf(arquivo, "%s\n", nome);
@@ -769,6 +812,9 @@ void inserir_linha(){
     printf("\n");
     char *nome;
     nome = malloc(TAMANHO);
+    if(nome == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int colunas;
     receber_nome_tabela(nome, 1);
     if (strcmp(nome, "/cancelar") == 0) { limpar(); return; }
@@ -783,7 +829,7 @@ void inserir_nome(char *nome){
     arquivo = fopen("tabelas.txt", "a");
     //caso de erro: arquivo não abre
     if(arquivo == NULL) {
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     //inserir o nome da tabela criada na listagem de tabelas
     else {
@@ -815,12 +861,15 @@ void limpar(){
 void listar(){
     char *nome = NULL;
     nome = malloc(TAMANHO);
+    if(nome == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int cont = 0;
     //abertura de arquivo tabelas.txt para leitura 
     FILE *arquivo = fopen("tabelas.txt", "r");
     //caso de erro: o arquivo não abre
     if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     //leitura dos nomes das tabelas até o fim do arquivo
     else{
@@ -843,6 +892,9 @@ void listar(){
 int listar_conteudo(char *nome){
     char a, c, *valor;
     valor = malloc(TAMANHO);
+    if(valor == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     FILE *listagem;
     coluna Coluna;
     alocar_arquivo(&listagem, nome, "r");
@@ -850,7 +902,7 @@ int listar_conteudo(char *nome){
     int espacos[qtdColunas], alinhar = 0, hifens = 0;
     //caso de erro: arquivo não abre
     if(listagem == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     else{
         fscanf(listagem, "%s\n", nome);
@@ -916,7 +968,7 @@ int listar_registro(char *nome, char *id){
     FILE *listagem;
     coluna Coluna;
     alocar_arquivo(&listagem, nome, "r");
-    int qtdColunas = contar_colunas(nome);
+    int qtdColunas = contar_colunas(nome), qtdLinhas = contar_linhas(nome);
     int espacos[qtdColunas], alinhar = 0, hifens = 0, idRegistro = 0, validar = 0, cont = 0, linha;
     //caso de erro: arquivo não abre
     if(listagem == NULL){
@@ -936,29 +988,29 @@ int listar_registro(char *nome, char *id){
         }
         fseek(listagem, 0, SEEK_SET);
         fscanf(listagem, "%s\n", nome);
+        //zerando os espaços
         for (int i = 0; i < qtdColunas; i++){
             espacos[i] = 0;
         }
+        //obtendo a maior quantidade de espaços de cada coluna
         for (int i = 0; i < qtdColunas; i++){
             fscanf(listagem, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
             if (strlen(Coluna.nome_coluna) > espacos[i]) espacos[i] = strlen(Coluna.nome_coluna); 
         }
         fscanf(listagem, "\n");
 
-        while (!feof(listagem)){
-            for (int i = 0; i < qtdColunas; i++){
-                fscanf(listagem, "%s | ", valor);
-                if (i == 0 && strcmp(valor,id) == 0){
-                    validar = 1; 
-                }
-                else {
-                    if (i == 0 && strcmp(valor,id) != 0) {
+        for (int i = 0; i < qtdLinhas; i++){
+            for (int j = 0; j < qtdColunas; j++){
+                strcpy(valor, escanear_campo(nome, i, j).nome);
+                if(j == 0 && strcmp(valor, id) == 0) validar = 1;
+                else{
+                    if (j == 0 && strcmp(valor,id) != 0) {
                         validar = 0;
                         break;
                     }
                 }
                 if(validar == 1){
-                    if (strlen(valor) > espacos[i]) espacos[i] = strlen(valor);
+                    if (strlen(valor) > espacos[j]) espacos[j] = strlen(valor);
                 }
             }
             fscanf(listagem, "\n");
@@ -979,37 +1031,39 @@ int listar_registro(char *nome, char *id){
         }
         printf("\n");
         listar_estilo_linha(qtdColunas, espacos);
-        fscanf(listagem, "\n");
         validar = 0;
-        while (!feof(listagem)){
-            cont++;
-            for (int i = 0; i < qtdColunas; i++){
-                fscanf(listagem, "%s | ", valor);
-                if (i == 0 && strcmp(valor,id) == 0){
+        fscanf(listagem, "\n");
+        for (int i = 0; i < qtdLinhas; i++){
+            for (int j = 0; j < qtdColunas; j++){
+                strcpy(valor, escanear_campo(nome, i, j).nome);
+                if(j == 0 && strcmp(valor, id) == 0) {
                     validar = 1;
                     linha = cont;
                 }
-                else {
-                    if (i == 0 && strcmp(valor,id) != 0) validar = 0;
+                else{
+                    if (j == 0 && strcmp(valor,id) != 0) {
+                        validar = 0;
+                        break;
+                    }
                 }
-                if(validar == 1){
-                    if (i == 0) printf("| ");
+                if (validar == 1){               
+                    if (j == 0) printf("| ");
                     if (strcmp(valor, "null") == 0) {
                         printf(" ");
-                        alinhar = espacos[i];
+                        alinhar = espacos[j];
                     }
                     else{ 
                         printf("%s ", valor);
-                        alinhar = espacos[i] - strlen(valor);
+                        alinhar = espacos[j] - strlen(valor);
                     }
-                    for (int j = 0; j < alinhar; j++) {
+                    for (int k = 0; k < alinhar; k++) {
                         printf(" ");
                     }
                     printf("| ");
                 }
             }
+            cont++;
             if (validar == 1) printf("\n");
-            fscanf(listagem, "\n");
         }
         listar_estilo_linha(qtdColunas, espacos);        
         fclose(listagem);
@@ -1038,6 +1092,9 @@ void pesquisar_campo(){
     char *nome, *campo, a, c;
     nome = malloc(TAMANHO);
     campo = malloc(TAMANHO);
+    if(nome == NULL || campo == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int fim = 1, cont = 0, loop = 1, inser = 1, posicao, conteudo = 0, tipo, not_null;
     FILE *arquivo;
     receber_nome_tabela(nome, 1);
@@ -1047,7 +1104,7 @@ void pesquisar_campo(){
         alocar_arquivo(&arquivo, nome, "r");
         //caso de erro: arquivo não abre
         if(arquivo == NULL){
-            printf("Erro na abertura do arquivo %s\n", nome);
+            fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
             loop = 0;
         }
         else{
@@ -1066,6 +1123,9 @@ void pesquisar_campo(){
                 printf("----- PESQUISAR VALOR -----\n");
                 coluna *Colunas = NULL;
                 Colunas = malloc(cont*sizeof(coluna));
+                if(Colunas == NULL){
+                    fprintf(stderr, "Erro na alocação de memória \n");
+                }
                 fseek(arquivo, 0, SEEK_SET);
                 fscanf(arquivo, "%s\n", nome);
                 for(int i = 0; i < cont; i++){
@@ -1074,7 +1134,7 @@ void pesquisar_campo(){
                 printf("Colunas disponiveis:\n");
                 for(int i = 0; i < cont; i++){
                     printf("%s  ", Colunas[i].nome_coluna);
-                    if(i % 3 == 0 && i != 0 && i != (cont-1)) printf("\n");
+                    //if((i+1) % 3 == 0 && i != 0 && i != (cont-1) && i != (cont-2)) printf("\n");
                 }
                 fim = 1;
                 printf("\n");
@@ -1119,19 +1179,22 @@ void pesquisar_campo(){
 }
 //recebe o valor a ser pesquisado e o modo de pesquisa
 void pesquisar_registro(char *nome, int posicao, int tipo, int not_null){
-    char *valor, *lixo;
+    char *valor, *recebimento;
     valor = malloc(TAMANHO);
-    lixo = malloc(TAMANHO);
+    recebimento = malloc(TAMANHO);
+    if(nome == NULL || recebimento == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     int x = 1, fim = 0, comp, conteudo = 0;
     printf("Insira o valor a ser pesquisado\n");
-    receber_campo(valor, tipo, 0);
+    receber_campo(valor, tipo, 1);
     if (strcmp(valor, "/cancelar") == 0) { limpar(); printf("----- PESQUISAR VALOR -----\n"); return; }
     limpar();
     printf("Conteudo da tabela:\n");
     conteudo = listar_conteudo(nome);
     if(conteudo == -1) {
         free(valor);
-        free(lixo);
+        free(recebimento);
         return;
     }
     else{
@@ -1147,11 +1210,10 @@ void pesquisar_registro(char *nome, int posicao, int tipo, int not_null){
             printf("5-Valores menores que ou iguais ao valor informado\n");
             if(tipo == 5) printf("6-Valores próximos ao valor informado\n");
             printf("0-Parar pesquisa\n");
-            //scanf("%d", &x);
-            receber_campo(lixo, 2, 1);
-            if (strcmp(lixo, "/cancelar") == 0) { limpar(); printf("----- PESQUISAR VALOR -----\n"); return; }
-            if(checar_inteiro(lixo) == 1) x = converter_string_em_inteiro(lixo);
-            if(checar_inteiro(lixo) != 1 || (tipo != 5 && (x < 0 || x > 5)) || (tipo == 5 && (x < 0 || x > 6))){
+            receber_campo(recebimento, 2, 1);
+            if (strcmp(recebimento, "/cancelar") == 0) { limpar(); printf("----- PESQUISAR VALOR -----\n"); return; }
+            if(checar_inteiro(recebimento) == 1) x = converter_string_em_inteiro(recebimento);
+            if(checar_inteiro(recebimento) != 1 || (tipo != 5 && (x < 0 || x > 5)) || (tipo == 5 && (x < 0 || x > 6))){
                 limpar();
                 printf("Opção inválida\n\n");
             }
@@ -1162,7 +1224,7 @@ void pesquisar_registro(char *nome, int posicao, int tipo, int not_null){
             }
         }
         free(valor);
-        free(lixo);
+        free(recebimento);
     }
 }
 //realiza uma busca na tabela pelo valor desejado no campo desejado e o modo da pesquisa
@@ -1171,7 +1233,10 @@ void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x){
     teste = malloc(TAMANHO);
     comparador = malloc(TAMANHO);
     lixo = malloc(TAMANHO);
-    int cont = 0, nulo = 0, qtdColunas = contar_colunas(nome), qtdLinhas = contar_linhas(nome), alinhar;
+    if(teste == NULL || comparador == NULL || lixo == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
+    int cont = 0, qtdColunas = contar_colunas(nome), qtdLinhas = contar_linhas(nome), alinhar;
     int espacos[qtdColunas];
     for (int i = 0; i < qtdColunas; i++){
         espacos[i] = espacos_por_coluna(nome, qtdColunas, i);
@@ -1180,12 +1245,11 @@ void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x){
     FILE *leitura, *mostrar;
     alocar_arquivo(&leitura, nome, "r");
     alocar_arquivo(&mostrar, nome, "r");
-    if(strcmp(valor, "null") == 0){
-        nulo = 1;
+    if(leitura == NULL || mostrar == NULL){
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
+        return;
     }
-    else{
-        if(tipo == 2 || tipo == 3 || tipo == 4) sscanf(valor, "%lf", &y);
-    }
+    if(tipo == 2 || tipo == 3 || tipo == 4) sscanf(valor, "%lf", &y);
     //pula as duas primeiras linhas do ponteiro leitura
     fscanf(leitura, "%s\n", nome);
     fscanf(leitura, "%c", &b);
@@ -1492,7 +1556,7 @@ void receber_nome_tabela(char *nome, int i){
     if(i == 0){
         fim = 0;
         while(fim!=1){
-            printf("Insira o nome da tabela\n");
+            printf("\nInsira o nome da tabela\n");
             scanf("%s", nome);
             getchar();
             if (strcmp(nome, "/cancelar") == 0) {
@@ -1505,7 +1569,7 @@ void receber_nome_tabela(char *nome, int i){
     else{
         fim = 1;
         while(fim!=0){
-            printf("Insira o nome da tabela\n");
+            printf("\nInsira o nome da tabela\n");
             scanf("%s", nome);
             getchar();
             if (strcmp(nome, "/cancelar") == 0) {
@@ -1514,6 +1578,29 @@ void receber_nome_tabela(char *nome, int i){
             fim = checar_nome_tabela(nome);
             if(fim == 1) printf("Essa tabela não existe.\n");
         }
+    }
+}
+//retorna o tipo da coluna da tabela
+int tipo_coluna(char *nome, int posicao){
+    char *valor = malloc(TAMANHO);
+    if(valor == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
+    int qtdColunas = contar_colunas(nome);
+    FILE *lerColunas = NULL; 
+    alocar_arquivo(&lerColunas, nome, "r");
+    if(lerColunas == NULL){
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
+    }
+    coluna Coluna;
+    fscanf(lerColunas, "%s\n", valor);
+    for (int i = 0; i < qtdColunas; i++){
+        fscanf(lerColunas, "%d %d %d %s | ", &Coluna.tipo, &Coluna.ai, &Coluna.not_null, Coluna.nome_coluna);
+        if (i == posicao) {
+            free(valor);
+            fclose(lerColunas);
+            return Coluna.tipo;
+        } 
     }
 }
 //transcreve colunas do arquivo de leitura para o de escrita provisória
@@ -1529,7 +1616,7 @@ int ultimo_id_tabela(char *nome){
     alocar_arquivo(&arquivo, nome, "a+");
     //caso de erro: arquivo não abre
     if(arquivo == NULL){
-        printf("Erro na abertura do arquivo %s\n", nome);
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
     }
     else {
         while (fscanf(arquivo, "%c", &c) != EOF) {
@@ -1567,8 +1654,14 @@ int ultimo_id_tabela(char *nome){
 int verificar_chave(char *nome, char *valor){
     char a, c, *chave;
     chave = malloc(TAMANHO);
+    if(chave == NULL){
+        fprintf(stderr, "Erro na alocação de memória \n");
+    }
     FILE *arquivo;
     alocar_arquivo(&arquivo, nome, "r");
+    if(arquivo == NULL){
+        fprintf(stderr, "Erro na abertura do arquivo %s\n", nome);
+    }
     fscanf(arquivo, "%s\n", nome);
     fscanf(arquivo, "%c", &c);
     a = (char)c;

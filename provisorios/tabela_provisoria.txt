@@ -1,0 +1,3 @@
+teste3
+2 1 1 id | 5 0 0 nome | 2 0 1 idade | 
+2 | "joao mendes" | 19 | 

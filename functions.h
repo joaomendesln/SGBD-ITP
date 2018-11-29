@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
 #include <string.h>
 #include <math.h>
 typedef struct {
@@ -42,6 +41,7 @@ void realizar_busca(char *nome, char *valor, int posicao, int tipo, int x);
 void receber_campo(char *valor, int tipo, int not_null);
 void receber_chave_primaria(char *valor);
 void receber_nome_tabela(char *nome, int i);
+int tipo_coluna(char *nome, int posicao);
 void transcrever_colunas(FILE *leitura, FILE *escritaProvisoria, coluna *Coluna);
 int ultimo_id_tabela(char *nome);
 int verificar_chave(char *nome, char *valor);
