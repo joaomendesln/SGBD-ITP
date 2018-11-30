@@ -3,6 +3,8 @@
 #include <stdio.h>
 #define TAMANHO 100
 
+//todas as checagens foram feitas por comparação com a tabela ASCII 
+
 //checa se a string inserida é um char
 int checar_char(char *nome){
     if (strcmp(nome, "null") != 0){
