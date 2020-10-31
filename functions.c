@@ -15,7 +15,7 @@ void alocar_arquivo(FILE** ptr, char *nome, char modo[]){
     *ptr = fopen(strcat(provisorio, ".txt"), modo);
     free(provisorio);
 }
-//apaga um registro
+//apaga um registro da tabela
 void apagar_registro(){
     coluna Coluna;
     char *nome, *valor, *campo, c, a;
